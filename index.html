@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#090b12" />
+  <title>Game Night Arcade</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/landing.css" />
+</head>
+<body class="landing-body">
+  <div class="scanlines" aria-hidden="true"></div><div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <main class="landing-shell">
+    <div class="landing-brand"><span class="brand-kicker">INSERT COIN</span><h1>GAME NIGHT<br>ARCADE</h1><p>One controller. Everyone connected.</p></div>
+    <div class="landing-choices">
+      <a href="admin.html" class="landing-card admin-choice"><span class="landing-icon">🕹️</span><small>HOST / CONTROLLER</small><h2>Admin</h2><p>Spin games, create teams, score matches, run chaos events and end the night.</p><strong>OPEN CONTROL ROOM →</strong></a>
+      <form id="playerLandingForm" class="landing-card player-choice"><span class="landing-icon">🎮</span><small>PHONE / SPECTATOR</small><h2>Player</h2><p>See the current game, teams, rules, rankings and history. Change only your own drink counter.</p><label><span>ROOM CODE</span><input id="landingRoomCode" type="text" maxlength="8" placeholder="ABC123" autocomplete="off" /></label><button class="primary-btn huge" type="submit">JOIN GAME NIGHT</button></form>
+    </div>
+  </main>
+  <script>document.getElementById('playerLandingForm').addEventListener('submit',e=>{e.preventDefault();const code=document.getElementById('landingRoomCode').value.toUpperCase().replace(/[^A-Z2-9]/g,'');if(code)location.href=`play.html?room=${encodeURIComponent(code)}`;});</script>
+</body>
+</html>

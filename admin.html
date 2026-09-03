@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#090b12" />
+  <title>Game Night Arcade — Admin</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <button id="openGameDrawerBtn" class="icon-btn" type="button" aria-label="Open game drawer">☰</button>
+
+    <div class="brand">
+      <span class="brand-kicker">INSERT COIN</span>
+      <h1>GAME NIGHT ARCADE</h1>
+    </div>
+
+    <div class="topbar-actions">
+      <button id="roomBtn" class="chip-btn room-chip" type="button">📡 <span id="roomCodeTop">ROOM</span></button>
+      <button id="playerBtn" class="chip-btn" type="button">👥 <span>Players</span></button>
+      <button id="nightBtn" class="chip-btn" type="button">🏆 <span>Night</span></button>
+      <button id="modeBtn" class="chip-btn" type="button">🎡 <span>Wheel</span></button>
+      <button id="soundBtn" class="chip-btn" type="button">🔊 <span>Sound</span></button>
+      <button id="settingsBtn" class="icon-btn" type="button" aria-label="Open settings">⚙</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="arcade-stage panel" aria-label="Game selector">
+      <div class="marquee-row">
+        <div>
+          <span class="eyebrow">NOW PLAYING</span>
+          <h2 id="modeTitle">Prize Wheel</h2>
+        </div>
+        <div class="status-cluster">
+          <span class="status-pill"><strong id="remainingCount">0</strong> READY</span>
+          <span class="status-pill dim"><strong id="removedCount">0</strong> OUT</span>
+        </div>
+      </div>
+
+      <div id="selectorViewport" class="selector-viewport mode-wheel">
+        <div id="wheelMode" class="mode-layer active" aria-label="Prize wheel">
+          <div class="wheel-wrap">
+            <div class="wheel-pointer" aria-hidden="true"></div>
+            <canvas id="wheelCanvas" width="900" height="900"></canvas>
+            <button id="wheelSpinButton" class="wheel-hub" type="button">
+              <span class="wheel-hub-small">PRESS</span>
+              <strong>SPIN</strong>
+            </button>
+          </div>
+        </div>
+
+        <div id="caseMode" class="mode-layer" aria-label="Case opening">
+          <div class="case-machine">
+            <div class="case-header-lights" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="case-window">
+              <div class="case-marker" aria-hidden="true"></div>
+              <div id="caseTrack" class="case-track"></div>
+            </div>
+            <button id="caseSpinButton" class="primary-btn huge" type="button">OPEN CASE</button>
+          </div>
+        </div>
+
+        <div id="slotMode" class="mode-layer" aria-label="Slot machine">
+          <div class="slot-machine">
+            <div class="slot-sign">LUCKY GAME 777</div>
+            <div class="slot-reels" id="slotReels">
+              <div class="slot-reel"><div class="slot-strip" data-reel="0"></div></div>
+              <div class="slot-reel main"><div class="slot-strip" data-reel="1"></div></div>
+              <div class="slot-reel"><div class="slot-strip" data-reel="2"></div></div>
+            </div>
+            <button id="slotSpinButton" class="slot-lever" type="button"><span></span><strong>PULL</strong></button>
+          </div>
+        </div>
+
+        <div id="shuffleMode" class="mode-layer" aria-label="Arcade shuffle">
+          <div class="shuffle-machine">
+            <div id="shuffleGrid" class="shuffle-grid"></div>
+            <button id="shuffleSpinButton" class="primary-btn huge" type="button">START SHUFFLE</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-deck">
+        <label class="toggle-row compact">
+          <span>
+            <strong>Selector display</strong>
+            <small>Switch between game logos and names</small>
+          </span>
+          <span class="segmented" role="group" aria-label="Selector display type">
+            <button id="displayLogoBtn" class="segment active" type="button">LOGO</button>
+            <button id="displayNameBtn" class="segment" type="button">NAME</button>
+          </span>
+        </label>
+
+        <label class="toggle-row compact">
+          <span>
+            <strong>Remove accepted game</strong>
+            <small>Accepted games disappear from future spins</small>
+          </span>
+          <input id="removeAfterAcceptToggle" type="checkbox" checked />
+        </label>
+      </div>
+    </section>
+
+    <aside id="rulesPanel" class="rules-panel panel waiting" aria-live="polite">
+      <div id="rulesWaiting" class="rules-waiting">
+        <div class="waiting-icon">?</div>
+        <span class="eyebrow">PRIZE TERMINAL</span>
+        <h2>No game selected</h2>
+        <p>Spin a mode, accept the prize, and its drinking rules will appear here.</p>
+        <div class="rule-legend">
+          <span class="legend red">● DRINK</span>
+          <span class="legend yellow">● CHALLENGE</span>
+          <span class="legend green">● GIVE</span>
+        </div>
+      </div>
+
+      <div id="rulesContent" class="rules-content hidden">
+        <div class="chosen-game-card">
+          <div class="chosen-logo-frame">
+            <img id="chosenGameLogo" src="" alt="" />
+          </div>
+          <div>
+            <span class="eyebrow">TONIGHT'S GAME</span>
+            <h2 id="chosenGameName"></h2>
+            <p id="chosenGameMeta" class="game-meta"></p>
+          </div>
+        </div>
+
+        <section id="teamRandomizer" class="team-randomizer hidden" aria-labelledby="teamRandomizerTitle">
+          <div class="team-randomizer-header">
+            <div>
+              <span class="eyebrow">TEAM RANDOMIZER</span>
+              <h3 id="teamRandomizerTitle">Tonight's teams</h3>
+              <p id="teamSummary">Players are shuffled as evenly as possible.</p>
+            </div>
+            <button id="editPlayersInlineBtn" class="secondary-btn" type="button">EDIT PLAYERS</button>
+          </div>
+
+          <div class="team-controls">
+            <label class="team-count-field">
+              <span>NUMBER OF TEAMS</span>
+              <select id="teamCountSelect" aria-label="Number of teams"></select>
+            </label>
+            <button id="randomizeTeamsBtn" class="primary-btn team-randomize-btn" type="button">↻ RANDOMIZE AGAIN</button>
+          </div>
+
+          <div id="teamGrid" class="team-grid"></div>
+        </section>
+
+        <section id="scorekeeper" class="scorekeeper hidden" aria-labelledby="scorekeeperTitle">
+          <div class="scorekeeper-header">
+            <div>
+              <span class="eyebrow">MATCH RESULT</span>
+              <h3 id="scorekeeperTitle">Save the score</h3>
+              <p id="scoreStatus">Leave every score empty and this game simply stays scoreless.</p>
+            </div>
+            <button id="openNightInlineBtn" class="secondary-btn" type="button">🏆 NIGHT STATS</button>
+          </div>
+
+          <div class="score-options">
+            <label>
+              <span>SCORE BY</span>
+              <select id="scoreModeSelect">
+                <option value="teams">Teams</option>
+                <option value="players">Players</option>
+              </select>
+            </label>
+            <label>
+              <span>WIN CONDITION</span>
+              <select id="scoreDirectionSelect">
+                <option value="high">Highest score wins</option>
+                <option value="low">Lowest score wins</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="scoreEntryList" class="score-entry-list"></div>
+          <div class="score-actions">
+            <button id="markScorelessBtn" class="secondary-btn" type="button">MARK SCORELESS</button>
+            <button id="saveScoreBtn" class="primary-btn" type="button">✓ SAVE RESULT</button>
+          </div>
+        </section>
+
+        <div id="ruleSections" class="rule-sections"></div>
+
+        <div class="responsible-note">
+          <strong>Keep it fun.</strong> Use small sips, swap any drink rule for water/soft drinks, and skip anything you do not want to do.
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="footer-bar">
+    <span id="historyText">No prizes accepted yet.</span>
+    <span>SPACE = spin · P = players · N = night stats · M = modes · G = games · S = sound</span>
+  </footer>
+
+  <!-- Game selection drawer -->
+  <div id="drawerBackdrop" class="backdrop hidden"></div>
+  <aside id="gameDrawer" class="drawer" aria-label="Game selection drawer">
+    <div class="drawer-header">
+      <div>
+        <span class="eyebrow">GAME LIBRARY</span>
+        <h2>Choose the pool</h2>
+      </div>
+      <button id="closeGameDrawerBtn" class="icon-btn" type="button" aria-label="Close game drawer">×</button>
+    </div>
+
+    <div class="drawer-tools">
+      <button id="selectAllBtn" class="secondary-btn" type="button">Select all</button>
+      <button id="selectNoneBtn" class="secondary-btn" type="button">Select none</button>
+      <button id="restoreRemovedBtn" class="secondary-btn" type="button">Restore eliminated</button>
+    </div>
+
+    <input id="gameSearchInput" class="search-input" type="search" placeholder="Search games..." autocomplete="off" />
+    <div id="gameList" class="game-list"></div>
+  </aside>
+
+  <!-- Night dashboard drawer -->
+  <div id="nightBackdrop" class="backdrop hidden"></div>
+  <aside id="nightDrawer" class="drawer night-drawer" aria-label="Game night dashboard">
+    <div class="drawer-header">
+      <div>
+        <span class="eyebrow">TONIGHT'S CABINET</span>
+        <h2>Night dashboard</h2>
+      </div>
+      <button id="closeNightDrawerBtn" class="icon-btn" type="button" aria-label="Close night dashboard">×</button>
+    </div>
+
+    <div id="nightSummary" class="night-summary"></div>
+
+    <section class="night-section">
+      <div class="night-section-title">
+        <div><span class="eyebrow">DRINK COUNTER</span><h3>Players</h3></div>
+        <small>Tap + when someone finishes a drink/unit.</small>
+      </div>
+      <div id="drinkPlayerList" class="drink-player-list"></div>
+    </section>
+
+    <section class="night-section">
+      <div class="night-section-title">
+        <div><span class="eyebrow">LEADERBOARD</span><h3>Most wins</h3></div>
+      </div>
+      <div id="leaderboardList" class="leaderboard-list"></div>
+    </section>
+
+    <section class="night-section arcade-extras">
+      <div class="night-section-title">
+        <div><span class="eyebrow">ARCADE EXTRAS</span><h3>Quick chaos</h3></div>
+      </div>
+      <div class="extra-buttons">
+        <button id="randomPlayerBtn" class="secondary-btn" type="button">🎯 PICK A PLAYER</button>
+        <button id="coinFlipBtn" class="secondary-btn" type="button">🪙 COIN FLIP</button>
+        <button id="modifierBtn" class="secondary-btn" type="button">⚡ RANDOM MODIFIER</button>
+      </div>
+      <div id="extraResult" class="extra-result">Use these for map picks, first player, tie-breaks or a little extra chaos.</div>
+    </section>
+
+    <section class="night-section night-history-section">
+      <div class="night-section-title">
+        <div><span class="eyebrow">MATCH LOG</span><h3>Tonight's games</h3></div>
+      </div>
+      <div id="matchHistoryList" class="match-history-list"></div>
+    </section>
+
+    <section class="night-section">
+      <div class="night-section-title">
+        <div><span class="eyebrow">ARCHIVE</span><h3>Previous nights</h3></div>
+        <small>Admin can remove incorrect nights or individual archived matches.</small>
+      </div>
+      <div id="adminArchiveList" class="archive-list"></div>
+    </section>
+
+    <div class="night-admin-actions">
+      <button id="endNightBtn" class="primary-btn large" type="button">🏁 END GAME NIGHT</button>
+      <button id="startNewNightBtn" class="secondary-btn large hidden" type="button">✨ START NEW NIGHT</button>
+    </div>
+  </aside>
+
+  <!-- Room sharing modal -->
+  <div id="roomModal" class="modal-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="roomModalTitle">
+    <div class="modal room-modal">
+      <button class="modal-close icon-btn" data-close-modal="roomModal" type="button">×</button>
+      <span class="eyebrow">LIVE ROOM</span>
+      <h2 id="roomModalTitle">Invite the players</h2>
+      <p class="room-help">This room stays linked to this admin browser. Players can reopen their link later and automatically resume their claimed identity on the same browser.</p>
+      <div class="room-share-grid">
+        <div class="room-code-card"><small>ROOM CODE</small><strong id="roomCodeLarge">------</strong><span id="cloudStatusText">Connecting…</span></div>
+        <div id="roomQr" class="room-qr" aria-label="Player join QR code"></div>
+      </div>
+      <label class="room-link-field"><span>PLAYER LINK</span><input id="playerJoinUrl" type="text" readonly /></label>
+      <div class="room-buttons">
+        <button id="copyPlayerLinkBtn" class="primary-btn large" type="button">COPY PLAYER LINK</button>
+        <a id="openPlayerViewBtn" class="secondary-btn large button-link" target="_blank" rel="noopener">OPEN PLAYER VIEW</a>
+      </div>
+      <div class="room-roster-section">
+        <div class="night-section-title"><div><span class="eyebrow">CONNECTED</span><h3>Player devices</h3></div><small>Release a claim if somebody changes phone/browser.</small></div>
+        <div id="roomRosterList" class="room-roster-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase setup message -->
+  <div id="cloudSetupModal" class="modal-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="cloudSetupTitle">
+    <div class="modal cloud-setup-modal">
+      <span class="eyebrow">ONE-TIME SETUP</span>
+      <h2 id="cloudSetupTitle">Connect Firebase</h2>
+      <p>The arcade still works locally, but the player website needs Firebase for live synchronization. Follow <strong>FIREBASE_SETUP.md</strong>, paste the config into <code>js/firebase-config.js</code>, then reload.</p>
+      <a class="secondary-btn large button-link" href="FIREBASE_SETUP.md" target="_blank">OPEN SETUP GUIDE</a>
+      <button id="continueLocalBtn" class="primary-btn large" type="button">CONTINUE LOCALLY FOR NOW</button>
+    </div>
+  </div>
+
+  <!-- Coin / chaos reveal -->
+  <div id="chaosModal" class="winner-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="chaosTitle">
+    <div class="winner-lights" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="winner-card chaos-card">
+      <span id="chaosKicker" class="winner-kicker">ARCADE CHAOS</span>
+      <div id="coinStage" class="coin-stage hidden" aria-hidden="true"><div id="arcadeCoin" class="arcade-coin"><div class="coin-face coin-heads">H</div><div class="coin-face coin-tails">T</div></div></div>
+      <div id="chaosEmoji" class="chaos-emoji hidden">🎯</div>
+      <p id="chaosSmall" class="winner-small">RESULT</p>
+      <h2 id="chaosTitle">HEADS</h2>
+      <p id="chaosSubtitle" class="winner-subtitle"></p>
+      <button id="closeChaosBtn" class="primary-btn large" type="button">CONTINUE</button>
+    </div>
+  </div>
+
+  <!-- Settings modal -->
+  <div id="settingsModal" class="modal-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal settings-modal">
+      <button class="modal-close icon-btn" data-close-modal="settingsModal" type="button">×</button>
+      <span class="eyebrow">CABINET SETTINGS</span>
+      <h2 id="settingsTitle">Game night controls</h2>
+
+      <div class="settings-grid">
+        <label class="toggle-row">
+          <span><strong>Sound effects</strong><small>Clicks, ticks, reels and win sounds</small></span>
+          <input id="soundToggle" type="checkbox" checked />
+        </label>
+
+        <label class="range-row">
+          <span><strong>Effect volume</strong><small id="volumeValue">70%</small></span>
+          <input id="volumeRange" type="range" min="0" max="1" step="0.05" value="0.7" />
+        </label>
+
+        <label class="toggle-row">
+          <span><strong>Reduced motion</strong><small>Shorter animations for motion sensitivity</small></span>
+          <input id="reducedMotionToggle" type="checkbox" />
+        </label>
+
+        <label class="toggle-row">
+          <span><strong>Remove after accept</strong><small>Global elimination setting</small></span>
+          <input id="settingsRemoveToggle" type="checkbox" checked />
+        </label>
+
+        <button id="editPlayersSettingsBtn" class="secondary-btn settings-action-btn" type="button">👥 EDIT TONIGHT'S PLAYERS</button>
+      </div>
+
+      <div class="danger-zone">
+        <div>
+          <strong>Reset current night</strong>
+          <small>Clears tonight's games, scores, teams and drink counters. Permanent archived nights stay saved.</small>
+        </div>
+        <button id="resetEverythingBtn" class="danger-btn" type="button">RESET CURRENT NIGHT</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Player setup -->
+  <div id="playerSetupModal" class="modal-wrap player-setup-wrap" role="dialog" aria-modal="true" aria-labelledby="playerSetupTitle">
+    <div class="modal player-setup-modal">
+      <div class="player-setup-heading">
+        <span class="eyebrow">PLAYER CHECK-IN</span>
+        <h2 id="playerSetupTitle">Who's playing tonight?</h2>
+        <p>Enter the people playing tonight. Each player claims their own name and unique emoji from the player website.</p>
+      </div>
+
+      <div class="player-count-card">
+        <label for="playerCountInput">NUMBER OF PLAYERS</label>
+        <div class="number-stepper">
+          <button id="decreasePlayerCountBtn" class="icon-btn" type="button" aria-label="Remove one player">−</button>
+          <input id="playerCountInput" type="number" min="2" max="16" value="8" inputmode="numeric" />
+          <button id="increasePlayerCountBtn" class="icon-btn" type="button" aria-label="Add one player">+</button>
+        </div>
+      </div>
+
+      <div id="playerNameList" class="player-name-list"></div>
+      <p id="playerSetupError" class="form-error hidden" role="alert"></p>
+
+      <div class="player-setup-actions">
+        <button id="cancelPlayerSetupBtn" class="secondary-btn large hidden" type="button">CANCEL</button>
+        <button id="savePlayersBtn" class="primary-btn huge" type="button">SAVE PLAYERS & CHOOSE MODE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode chooser -->
+  <div id="modeModal" class="modal-wrap intro hidden" role="dialog" aria-modal="true" aria-labelledby="modeMenuTitle">
+    <div class="modal mode-modal">
+      <div class="mode-intro-copy">
+        <span class="eyebrow">CHOOSE YOUR MACHINE</span>
+        <h2 id="modeMenuTitle">How will fate decide?</h2>
+        <p>Every machine uses the same active game pool and elimination settings.</p>
+      </div>
+
+      <div class="mode-card-grid">
+        <button class="mode-card selected" data-mode="wheel" type="button">
+          <span class="mode-icon">🎡</span>
+          <strong>Prize Wheel</strong>
+          <small>Classic spin with an arcade jackpot finish.</small>
+          <span class="mode-tag">CLASSIC</span>
+        </button>
+
+        <button class="mode-card" data-mode="case" type="button">
+          <span class="mode-icon">📦</span>
+          <strong>Case Opening</strong>
+          <small>CS-style horizontal roll under the center marker.</small>
+          <span class="mode-tag">HYPE</span>
+        </button>
+
+        <button class="mode-card" data-mode="slot" type="button">
+          <span class="mode-icon">🎰</span>
+          <strong>Slot Machine</strong>
+          <small>Three vertical reels with a jackpot reveal.</small>
+          <span class="mode-tag">CHAOS</span>
+        </button>
+
+        <button class="mode-card" data-mode="shuffle" type="button">
+          <span class="mode-icon">⚡</span>
+          <strong>Arcade Shuffle</strong>
+          <small>Rapid-fire flashing game tiles that slow to one winner.</small>
+          <span class="mode-tag">FAST</span>
+        </button>
+      </div>
+
+      <div class="mode-entry-actions">
+        <button id="editPoolBtn" class="secondary-btn large" type="button">☰ EDIT GAME POOL</button>
+        <button id="enterArcadeBtn" class="primary-btn huge" type="button">ENTER ARCADE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Winner reveal -->
+  <div id="winnerModal" class="winner-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="winnerTitle">
+    <div class="winner-lights" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="winner-card">
+      <span id="winnerKicker" class="winner-kicker">JACKPOT!</span>
+      <div class="winner-logo-shell">
+        <img id="winnerLogo" src="" alt="" />
+      </div>
+      <p class="winner-small">YOU GOT</p>
+      <h2 id="winnerTitle"></h2>
+      <p id="winnerSubtitle" class="winner-subtitle">Accept it or tempt fate again.</p>
+      <div class="winner-actions">
+        <button id="rerollBtn" class="secondary-btn large" type="button">↻ REROLL</button>
+        <button id="acceptBtn" class="primary-btn large" type="button">✓ ACCEPT GAME</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/games.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/soundboard.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-service.js"></script>
+  <script src="js/modes.js"></script>
+  <script src="js/teams.js"></script>
+  <script src="js/session.js"></script>
+  <script async src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" onload="window.dispatchEvent(new Event('qrcode-ready'))"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

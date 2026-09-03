@@ -1,0 +1,36 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rooms": {
+      "$room": {
+        ".read": "auth != null",
+        ".write": "auth != null && ((!data.exists() && newData.child('meta').child('adminUid').val() == auth.uid) || data.child('meta').child('adminUid').val() == auth.uid)",
+        "members": {
+          "$member": {
+            ".write": "auth != null && (root.child('rooms').child($room).child('meta').child('adminUid').val() == auth.uid || (!data.child('uid').exists() && newData.child('uid').val() == auth.uid && newData.child('name').val() == data.child('name').val() && newData.child('drinks').val() == data.child('drinks').val() && newData.child('emojiKey').isString() && root.child('rooms').child($room).child('emojiClaims').child(newData.child('emojiKey').val()).child('uid').val() == auth.uid))",
+            "drinks": {
+              ".write": "auth != null && (root.child('rooms').child($room).child('meta').child('adminUid').val() == auth.uid || (root.child('rooms').child($room).child('meta').child('status').val() == 'active' && data.parent().child('uid').val() == auth.uid))",
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999 && newData.val() % 1 == 0"
+            }
+          }
+        },
+        "emojiClaims": {
+          "$emoji": {
+            ".write": "auth != null && (root.child('rooms').child($room).child('meta').child('adminUid').val() == auth.uid || (!data.exists() && newData.child('uid').val() == auth.uid) || (data.child('uid').val() == auth.uid && !newData.exists()))"
+          }
+        },
+        "uidToMember": {
+          "$uid": {
+            ".write": "auth != null && (root.child('rooms').child($room).child('meta').child('adminUid').val() == auth.uid || (auth.uid == $uid && root.child('rooms').child($room).child('members').child(newData.val()).child('uid').val() == auth.uid))"
+          }
+        },
+        "soundEvents": {
+          "$uid": {
+            ".write": "auth != null && root.child('rooms').child($room).child('meta').child('status').val() == 'active' && auth.uid == $uid && newData.child('memberId').val() == root.child('rooms').child($room).child('uidToMember').child(auth.uid).val() && newData.child('soundId').isString() && newData.child('at').isNumber() && newData.child('at').val() <= now + 10000 && newData.child('at').val() >= now - 10000 && (!data.exists() || newData.child('at').val() - data.child('at').val() >= 30000)"
+          }
+        }
+      }
+    }
+  }
+}

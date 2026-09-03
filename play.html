@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#090b12" />
+  <title>Game Night Arcade — Player</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/player.css" />
+</head>
+<body class="player-view">
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <header class="player-topbar">
+    <a class="player-brand" href="index.html"><span>INSERT COIN</span><strong>GAME NIGHT</strong></a>
+    <div class="player-room-status"><span id="connectionDot" class="connection-dot"></span><strong id="playerRoomCode">------</strong></div>
+    <button id="enableLiveSoundBtn" class="chip-btn" type="button">🔊 <span>Enable sounds</span></button>
+  </header>
+
+  <main id="playerApp" class="player-shell hidden">
+    <section id="endedBanner" class="ended-banner hidden">
+      <span class="eyebrow">GAME NIGHT COMPLETE</span>
+      <h2 id="endedTitle">Final results</h2>
+      <div id="endedPodium" class="ended-podium"></div>
+    </section>
+
+    <section class="player-hero-grid">
+      <article class="player-current-game panel">
+        <div class="player-section-heading">
+          <div><span class="eyebrow">CURRENT GAME</span><h1 id="liveGameName">Waiting for the first game…</h1></div>
+          <img id="liveGameLogo" class="live-game-logo hidden" alt="" />
+        </div>
+        <p id="liveGameMeta" class="game-meta">The admin controls the arcade. This page updates automatically.</p>
+        <div id="liveModifier" class="live-modifier hidden"></div>
+        <div id="playerTeams" class="spectator-team-grid"></div>
+        <div id="liveScore" class="live-score-card"></div>
+        <div id="playerRules" class="player-rules"></div>
+      </article>
+
+      <aside class="my-player-card panel">
+        <span class="eyebrow">YOUR PLAYER</span>
+        <div class="my-identity"><span id="myEmoji">🎮</span><div><h2 id="myName">Player</h2><p id="myTeam">Waiting for teams</p></div></div>
+        <div class="my-drinks">
+          <small>YOUR DRINK COUNTER</small>
+          <div class="my-drink-controls"><button id="myDrinkMinus" type="button">−</button><strong id="myDrinkCount">0</strong><button id="myDrinkPlus" type="button">+</button></div>
+          <p>Only you and the admin can change this counter.</p>
+        </div>
+        <button id="openSoundboardBtn" class="primary-btn huge" type="button">🔊 SOUND BOARD</button>
+        <p id="soundCooldownText" class="cooldown-text">Ready to play a sound.</p>
+      </aside>
+    </section>
+
+    <nav class="player-tabs" aria-label="Player dashboard sections">
+      <button class="player-tab active" data-tab="rankings" type="button">🏆 Rankings</button>
+      <button class="player-tab" data-tab="history" type="button">🕹 History</button>
+      <button class="player-tab" data-tab="players" type="button">👥 Players</button>
+    </nav>
+
+    <section id="tabRankings" class="player-tab-panel active">
+      <div class="player-two-col">
+        <article class="player-info-panel panel"><div class="player-section-heading"><div><span class="eyebrow">LEADERBOARD</span><h2>Most wins</h2></div></div><div id="playerLeaderboard" class="leaderboard-list"></div></article>
+        <article class="player-info-panel panel"><div class="player-section-heading"><div><span class="eyebrow">COUNTER</span><h2>Drink totals</h2></div></div><div id="drinkLeaderboard" class="leaderboard-list"></div></article>
+      </div>
+    </section>
+
+    <section id="tabHistory" class="player-tab-panel">
+      <div class="player-two-col">
+        <article class="player-info-panel panel"><div class="player-section-heading"><div><span class="eyebrow">TONIGHT</span><h2>Match log</h2></div></div><div id="playerCurrentHistory" class="match-history-list"></div></article>
+        <article class="player-info-panel panel"><div class="player-section-heading"><div><span class="eyebrow">ARCHIVE</span><h2>Previous nights</h2></div></div><div id="playerArchiveList" class="archive-list"></div></article>
+      </div>
+    </section>
+
+    <section id="tabPlayers" class="player-tab-panel">
+      <article class="player-info-panel panel"><div class="player-section-heading"><div><span class="eyebrow">LOBBY</span><h2>Tonight's players</h2></div></div><div id="allPlayersGrid" class="all-players-grid"></div></article>
+    </section>
+  </main>
+
+  <!-- Join / claim -->
+  <div id="playerJoinModal" class="modal-wrap" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
+    <div class="modal join-modal">
+      <span class="eyebrow">PLAYER TERMINAL</span>
+      <h2 id="joinTitle">Join game night</h2>
+      <p id="joinHelp">Enter the room code from the admin screen.</p>
+      <label id="roomCodeField" class="join-field"><span>ROOM CODE</span><input id="roomCodeInput" type="text" maxlength="8" autocomplete="off" autocapitalize="characters" placeholder="ABC123" /></label>
+      <button id="joinRoomBtn" class="primary-btn huge" type="button">JOIN ROOM</button>
+      <p id="joinError" class="form-error hidden"></p>
+
+      <div id="claimSection" class="claim-section hidden">
+        <div class="claim-divider"><span>CLAIM YOUR PLAYER</span></div>
+        <div id="claimNameList" class="claim-name-list"></div>
+        <div class="claim-divider"><span>CHOOSE AN EMOJI</span></div>
+        <div id="claimEmojiGrid" class="claim-emoji-grid"></div>
+        <button id="claimPlayerBtn" class="primary-btn huge" type="button" disabled>CLAIM & ENTER</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Soundboard -->
+  <div id="soundboardModal" class="modal-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="soundboardTitle">
+    <div class="modal soundboard-modal">
+      <button id="closeSoundboardBtn" class="modal-close icon-btn" type="button">×</button>
+      <span class="eyebrow">30 SECOND COOLDOWN</span>
+      <h2 id="soundboardTitle">Send a sound to everyone</h2>
+      <p>One tap plays the clip on the admin screen and every connected player screen.</p>
+      <div id="soundboardGrid" class="soundboard-grid"></div>
+      <p id="soundboardCooldown" class="cooldown-text"></p>
+    </div>
+  </div>
+
+  <!-- Live machine broadcast -->
+  <div id="liveAnimationModal" class="live-animation-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="liveAnimationHeading">
+    <div class="live-animation-top"><span class="eyebrow">LIVE FROM THE ADMIN</span><h2 id="liveAnimationHeading">The machine is rolling…</h2></div>
+    <div id="selectorViewport" class="selector-viewport mode-wheel spectator-selector">
+      <div id="wheelMode" class="mode-layer active"><div class="wheel-wrap"><div class="wheel-pointer"></div><canvas id="wheelCanvas" width="900" height="900"></canvas><div class="wheel-hub spectator-hub"><span class="wheel-hub-small">LIVE</span><strong>ROLL</strong></div></div></div>
+      <div id="caseMode" class="mode-layer"><div class="case-machine"><div class="case-header-lights"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="case-window"><div class="case-marker"></div><div id="caseTrack" class="case-track"></div></div></div></div>
+      <div id="slotMode" class="mode-layer"><div class="slot-machine"><div class="slot-sign">LIVE GAME 777</div><div class="slot-reels"><div class="slot-reel"><div class="slot-strip" data-reel="0"></div></div><div class="slot-reel main"><div class="slot-strip" data-reel="1"></div></div><div class="slot-reel"><div class="slot-strip" data-reel="2"></div></div></div><button class="slot-lever spectator-lever" type="button" tabindex="-1"><span></span><strong>LIVE</strong></button></div></div>
+      <div id="shuffleMode" class="mode-layer"><div class="shuffle-machine"><div id="shuffleGrid" class="shuffle-grid"></div></div></div>
+    </div>
+    <div id="liveAnimationResult" class="live-animation-result hidden"><span id="liveResultEmoji"></span><strong id="liveResultTitle"></strong><small id="liveResultSubtitle"></small><button id="closeLiveAnimationBtn" class="primary-btn large" type="button">BACK TO GAME NIGHT</button></div>
+  </div>
+
+  <!-- Coin / live chaos -->
+  <div id="chaosModal" class="winner-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="chaosTitle">
+    <div class="winner-lights"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="winner-card chaos-card"><span id="chaosKicker" class="winner-kicker">LIVE EVENT</span><div id="coinStage" class="coin-stage hidden"><div id="arcadeCoin" class="arcade-coin"><div class="coin-face coin-heads">H</div><div class="coin-face coin-tails">T</div></div></div><div id="chaosEmoji" class="chaos-emoji hidden">🎯</div><p class="winner-small">LIVE RESULT</p><h2 id="chaosTitle">HEADS</h2><p id="chaosSubtitle" class="winner-subtitle"></p><button id="closeChaosBtn" class="primary-btn large" type="button">CONTINUE</button></div>
+  </div>
+
+  <div id="liveNotice" class="live-notice" aria-live="polite"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/games.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/soundboard.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-service.js"></script>
+  <script src="js/modes.js"></script>
+  <script src="js/session.js"></script>
+  <script src="js/player.js"></script>
+</body>
+</html>
