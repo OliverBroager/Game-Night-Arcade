@@ -127,11 +127,27 @@
           <div><span class="eyebrow">TONIGHT'S ARCADE</span><h2 id="gameQueueTitle">Game list</h2></div>
           <span id="queueProgress" class="queue-progress">0 / 0</span>
         </div>
-        <p class="queue-help">Played games fade out. The latest saved score stays visible.</p>
+        <p class="queue-help">Hover or tap a game for rules and info. Played games fade out and keep their score.</p>
         <div id="gameQueueList" class="game-queue-list"></div>
       </aside>
     </div>
   </main>
+
+  <!-- Queue game information popover -->
+  <div id="gameInfoPopover" class="game-info-popover hidden" role="dialog" aria-modal="false" aria-labelledby="gameInfoTitle">
+    <button id="closeGameInfoBtn" class="game-info-close" type="button" aria-label="Close game information">×</button>
+    <div class="game-info-head">
+      <img id="gameInfoLogo" alt="" />
+      <div>
+        <span id="gameInfoStatus" class="game-info-status">UPCOMING</span>
+        <h2 id="gameInfoTitle">Game</h2>
+        <p id="gameInfoMeta"></p>
+      </div>
+    </div>
+    <div id="gameInfoScore" class="game-info-score hidden"></div>
+    <div id="gameInfoRules" class="game-info-rules"></div>
+    <small class="game-info-mobile-hint">Tap outside to close</small>
+  </div>
   <!-- Join / claim -->
   <div id="playerJoinModal" class="modal-wrap" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
     <div class="modal join-modal">

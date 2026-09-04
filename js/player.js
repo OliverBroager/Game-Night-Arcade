@@ -10,6 +10,9 @@
   const lastSoundSeen = new Map();
   let noticeTimer = null;
   let cooldownTimer = null;
+  let gameInfoHideTimer = null;
+  let activeGameInfoId = null;
+  let gameInfoPinned = false;
 
   const $ = id => document.getElementById(id);
   const els = Object.fromEntries([
@@ -21,7 +24,8 @@
     "claimPlayerBtn","soundboardModal","closeSoundboardBtn","soundboardGrid","soundboardCooldown","liveAnimationModal",
     "liveAnimationHeading","liveAnimationResult","liveResultEmoji","liveResultTitle","liveResultSubtitle","closeLiveAnimationBtn",
     "chaosModal","chaosKicker","chaosTitle","chaosSubtitle","chaosEmoji","coinStage","arcadeCoin","closeChaosBtn","liveNotice",
-    "selectorViewport","gameQueueList","queueProgress"
+    "selectorViewport","gameQueueList","queueProgress","gameInfoPopover","closeGameInfoBtn","gameInfoLogo",
+    "gameInfoStatus","gameInfoTitle","gameInfoMeta","gameInfoScore","gameInfoRules"
   ].map(id => [id,$(id)]));
 
   const modeNames = {wheel:"Prize Wheel",case:"Case Opening",slot:"Slot Machine",shuffle:"Arcade Shuffle"};
@@ -114,7 +118,7 @@
       if(isPlayed)completed+=1;
       const score=latest?compactRoundScore(latest):"";
       const status=isCurrent?"NOW PLAYING":isPlayed?compactRoundResult(latest):"UPCOMING";
-      return `<article class="game-queue-item ${isCurrent?"current":""} ${isPlayed?"played":""}">
+      return `<article class="game-queue-item ${isCurrent?"current":""} ${isPlayed?"played":""}" tabindex="0" data-game-info-id="${item.id}" aria-label="${escapeHtml(item.name)} — ${escapeHtml(status)}. Show game information" aria-haspopup="dialog">
         <span class="queue-number">${String(index+1).padStart(2,"0")}</span>
         <span class="queue-logo-wrap"><img src="${item.logo}" alt="${escapeHtml(item.name)} logo"></span>
         <span class="queue-game-copy"><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(status)}</small></span>
@@ -123,6 +127,109 @@
     }).join("")||'<p class="empty-dashboard">The admin has not enabled any games yet.</p>';
 
     els.queueProgress.textContent=`${completed} / ${queueGames.length}`;
+  }
+
+  function latestRoundForGame(gameId){
+    const rounds=(publicState().matchHistory||[]).filter(round=>round.gameId===gameId);
+    return rounds[rounds.length-1]||null;
+  }
+
+  function gameQueueStatus(item){
+    const ps=publicState();
+    const latest=latestRoundForGame(item.id);
+    const ended=roomData?.meta?.status==="ended"||ps.nightEnded;
+    const isCurrent=item.id===ps.acceptedGameId&&!ended;
+    const isPlayed=Boolean(latest)&&(ended||latest.id!==ps.activeRoundId);
+    return {
+      latest,
+      isCurrent,
+      isPlayed,
+      label:isCurrent?"NOW PLAYING":isPlayed?compactRoundResult(latest):"UPCOMING",
+      compactScore:latest?compactRoundScore(latest):""
+    };
+  }
+
+  function detailedRoundText(round){
+    if(!round)return "";
+    if(round.scoreless)return "This game was saved as scoreless.";
+    const scores=(round.scores||[]).map(entry=>`${entry.label}: ${entry.score}`).join(" · ");
+    const winners=(round.winners||[]).length?`Winner${round.winners.length===1?"":"s"}: ${round.winners.join(", ")}`:"Result saved";
+    return scores?`${winners} · ${scores}`:winners;
+  }
+
+  function positionGameInfoPopover(anchor){
+    if(!anchor||els.gameInfoPopover.classList.contains("hidden"))return;
+    if(window.matchMedia("(max-width: 980px)").matches){
+      els.gameInfoPopover.style.left="";
+      els.gameInfoPopover.style.top="";
+      els.gameInfoPopover.style.width="";
+      return;
+    }
+    const rect=anchor.getBoundingClientRect();
+    const pop=els.gameInfoPopover;
+    const width=Math.min(420,window.innerWidth-24);
+    pop.style.width=`${width}px`;
+    const popHeight=Math.min(pop.scrollHeight,window.innerHeight-24);
+    let left=rect.left-width-12;
+    if(left<12)left=Math.min(window.innerWidth-width-12,rect.right+12);
+    let top=rect.top+(rect.height/2)-(popHeight/2);
+    top=Math.max(12,Math.min(window.innerHeight-popHeight-12,top));
+    pop.style.left=`${Math.round(left)}px`;
+    pop.style.top=`${Math.round(top)}px`;
+  }
+
+  function showGameInfo(gameId,anchor,{pin=false}={}){
+    const item=game(gameId);if(!item)return;
+    clearTimeout(gameInfoHideTimer);
+    activeGameInfoId=gameId;
+    gameInfoPinned=pin;
+    const status=gameQueueStatus(item);
+    els.gameInfoLogo.src=item.logo;
+    els.gameInfoLogo.alt=`${item.name} logo`;
+    els.gameInfoStatus.textContent=status.label;
+    els.gameInfoStatus.className=`game-info-status ${status.isCurrent?"current":status.isPlayed?"played":"upcoming"}`;
+    els.gameInfoTitle.textContent=item.name;
+    els.gameInfoMeta.textContent=[item.players,item.price,item.note].filter(Boolean).join(" · ")||"Game night title";
+
+    const result=status.latest&&(!status.isCurrent||!status.latest.scoreless||(status.latest.scores||[]).length)
+      ? detailedRoundText(status.latest)
+      : "";
+    if(result){
+      els.gameInfoScore.innerHTML=`<span>${status.isPlayed?"SAVED RESULT":"CURRENT RESULT"}</span><strong>${escapeHtml(result)}</strong>`;
+      els.gameInfoScore.classList.remove("hidden");
+    }else{
+      els.gameInfoScore.classList.add("hidden");
+      els.gameInfoScore.innerHTML="";
+    }
+
+    const types=window.ARCADE_CONFIG.ruleTypes;
+    els.gameInfoRules.innerHTML=["red","yellow","green"].map(type=>{
+      const rules=item.rules?.[type]||[];
+      const info=types[type];
+      return `<section class="game-info-rule-group ${type}">
+        <div class="game-info-rule-title"><span>${info.icon} ${escapeHtml(info.label)}</span><small>${rules.length}</small></div>
+        ${rules.length?`<ul>${rules.map(rule=>`<li>${escapeHtml(rule)}</li>`).join("")}</ul>`:`<p>No ${escapeHtml(info.label.toLowerCase())} rules.</p>`}
+      </section>`;
+    }).join("");
+
+    els.gameInfoPopover.classList.remove("hidden");
+    document.querySelectorAll(".game-queue-item.info-active").forEach(row=>row.classList.remove("info-active"));
+    anchor?.classList.add("info-active");
+    requestAnimationFrame(()=>positionGameInfoPopover(anchor));
+  }
+
+  function hideGameInfo({force=false}={}){
+    if(gameInfoPinned&&!force)return;
+    clearTimeout(gameInfoHideTimer);
+    els.gameInfoPopover.classList.add("hidden");
+    document.querySelectorAll(".game-queue-item.info-active").forEach(row=>row.classList.remove("info-active"));
+    activeGameInfoId=null;
+    gameInfoPinned=false;
+  }
+
+  function scheduleGameInfoHide(){
+    clearTimeout(gameInfoHideTimer);
+    gameInfoHideTimer=setTimeout(()=>hideGameInfo(),140);
   }
 
   function renderCurrentGame(){
@@ -187,10 +294,49 @@
     els.enableLiveSoundBtn.addEventListener("click",()=>{window.ArcadeAudio.unlock();window.ArcadeAudio.play("button",{volume:.35});els.enableLiveSoundBtn.innerHTML="✅ <span>Sounds ready</span>";showNotice("🔊 Live sounds enabled on this device.")});
     els.openSoundboardBtn.addEventListener("click",()=>{renderSoundboard();els.soundboardModal.classList.remove("hidden")});els.closeSoundboardBtn.addEventListener("click",()=>els.soundboardModal.classList.add("hidden"));els.soundboardGrid.addEventListener("click",e=>{const button=e.target.closest("[data-sound-id]");if(button&&!button.disabled)playSound(button.dataset.soundId)});
     document.querySelectorAll(".player-tab").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll(".player-tab").forEach(b=>b.classList.toggle("active",b===button));document.querySelectorAll(".player-tab-panel").forEach(panel=>panel.classList.remove("active"));$(`tab${button.dataset.tab[0].toUpperCase()}${button.dataset.tab.slice(1)}`).classList.add("active")}));
+
+    // Game queue info: hover/focus on desktop, tap to pin on touch devices.
+    els.gameQueueList.addEventListener("pointerover",event=>{
+      if(!window.matchMedia("(hover: hover)").matches)return;
+      const row=event.target.closest("[data-game-info-id]");
+      if(!row||row.contains(event.relatedTarget))return;
+      showGameInfo(row.dataset.gameInfoId,row,{pin:false});
+    });
+    els.gameQueueList.addEventListener("pointerout",event=>{
+      if(!window.matchMedia("(hover: hover)").matches)return;
+      const row=event.target.closest("[data-game-info-id]");
+      if(!row||row.contains(event.relatedTarget))return;
+      scheduleGameInfoHide();
+    });
+    els.gameQueueList.addEventListener("focusin",event=>{
+      const row=event.target.closest("[data-game-info-id]");
+      if(row)showGameInfo(row.dataset.gameInfoId,row,{pin:false});
+    });
+    els.gameQueueList.addEventListener("focusout",event=>{
+      const row=event.target.closest("[data-game-info-id]");
+      if(row&&!els.gameInfoPopover.contains(event.relatedTarget))scheduleGameInfoHide();
+    });
+    els.gameQueueList.addEventListener("click",event=>{
+      const row=event.target.closest("[data-game-info-id]");
+      if(!row)return;
+      const same=activeGameInfoId===row.dataset.gameInfoId&&!els.gameInfoPopover.classList.contains("hidden");
+      if(same&&gameInfoPinned){hideGameInfo({force:true});return;}
+      showGameInfo(row.dataset.gameInfoId,row,{pin:true});
+    });
+    els.gameInfoPopover.addEventListener("pointerenter",()=>clearTimeout(gameInfoHideTimer));
+    els.gameInfoPopover.addEventListener("pointerleave",()=>{if(!gameInfoPinned)scheduleGameInfoHide();});
+    els.closeGameInfoBtn.addEventListener("click",()=>hideGameInfo({force:true}));
+    document.addEventListener("pointerdown",event=>{
+      if(els.gameInfoPopover.classList.contains("hidden"))return;
+      if(els.gameInfoPopover.contains(event.target)||event.target.closest("[data-game-info-id]"))return;
+      hideGameInfo({force:true});
+    });
+
     const dismissLiveAnimation=()=>els.liveAnimationModal.classList.add("hidden");
     els.closeLiveAnimationBtn.addEventListener("click",dismissLiveAnimation);
     els.liveAnimationModal.addEventListener("pointerdown",dismissLiveAnimation);
     els.closeChaosBtn.addEventListener("click",()=>{els.chaosModal.classList.add("hidden");els.arcadeCoin.className="arcade-coin"});
+    window.addEventListener("resize",()=>{const row=activeGameInfoId?els.gameQueueList.querySelector(`[data-game-info-id="${activeGameInfoId}"]`):null;if(row)positionGameInfoPopover(row);});
     cooldownTimer=setInterval(()=>{if(memberId&&roomData)renderSoundboard()},500);
   }
 
