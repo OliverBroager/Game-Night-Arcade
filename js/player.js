@@ -229,7 +229,7 @@
 
   function scheduleGameInfoHide(){
     clearTimeout(gameInfoHideTimer);
-    gameInfoHideTimer=setTimeout(()=>hideGameInfo(),140);
+    gameInfoHideTimer=setTimeout(()=>hideGameInfo(),450);
   }
 
   function renderCurrentGame(){
@@ -295,15 +295,16 @@
     els.openSoundboardBtn.addEventListener("click",()=>{renderSoundboard();els.soundboardModal.classList.remove("hidden")});els.closeSoundboardBtn.addEventListener("click",()=>els.soundboardModal.classList.add("hidden"));els.soundboardGrid.addEventListener("click",e=>{const button=e.target.closest("[data-sound-id]");if(button&&!button.disabled)playSound(button.dataset.soundId)});
     document.querySelectorAll(".player-tab").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll(".player-tab").forEach(b=>b.classList.toggle("active",b===button));document.querySelectorAll(".player-tab-panel").forEach(panel=>panel.classList.remove("active"));$(`tab${button.dataset.tab[0].toUpperCase()}${button.dataset.tab.slice(1)}`).classList.add("active")}));
 
-    // Game queue info: hover/focus on desktop, tap to pin on touch devices.
-    els.gameQueueList.addEventListener("pointerover",event=>{
-      if(!window.matchMedia("(hover: hover)").matches)return;
+    // Game queue info: a real mouse hover always opens the card.
+    // Do not depend on CSS `(hover: hover)` because hybrid laptops/tablets can
+    // report that incorrectly even while a mouse is being used. Touch still
+    // uses the click handler below to pin the card open.
+    els.gameQueueList.addEventListener("mouseover",event=>{
       const row=event.target.closest("[data-game-info-id]");
       if(!row||row.contains(event.relatedTarget))return;
       showGameInfo(row.dataset.gameInfoId,row,{pin:false});
     });
-    els.gameQueueList.addEventListener("pointerout",event=>{
-      if(!window.matchMedia("(hover: hover)").matches)return;
+    els.gameQueueList.addEventListener("mouseout",event=>{
       const row=event.target.closest("[data-game-info-id]");
       if(!row||row.contains(event.relatedTarget))return;
       scheduleGameInfoHide();
