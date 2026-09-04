@@ -1002,3 +1002,41 @@
   .game-info-rules { gap: 6px; }
   .game-info-rule-group { padding: 9px; }
 }
+
+/* ---------- Always-on-top game overlay launcher ---------- */
+.my-player-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 10px;
+}
+.my-player-actions > button {
+  width: 100%;
+  min-height: 46px;
+  padding-inline: 9px;
+  font-size: 9px;
+}
+.game-overlay-btn {
+  border-color: rgba(92,245,255,.24);
+  color: var(--cyan);
+  background: linear-gradient(180deg, rgba(92,245,255,.08), rgba(92,245,255,.025));
+}
+.game-overlay-btn.active {
+  border-color: rgba(83,245,140,.38);
+  color: #aaffc1;
+  background: rgba(83,245,140,.08);
+  box-shadow: 0 0 20px rgba(83,245,140,.06);
+}
+.overlay-support-text {
+  margin: 7px 0 0;
+  color: var(--muted);
+  text-align: center;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+@media (max-width: 620px) {
+  .my-player-actions { grid-template-columns: 1fr; }
+  .game-overlay-btn { display: none; }
+  .overlay-support-text { display: none; }
+}
