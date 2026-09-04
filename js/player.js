@@ -13,8 +13,6 @@
   let gameInfoHideTimer = null;
   let activeGameInfoId = null;
   let gameInfoPinned = false;
-  let overlayWindow = null;
-  let overlayKind = null;
 
   const $ = id => document.getElementById(id);
   const els = Object.fromEntries([
@@ -27,8 +25,7 @@
     "liveAnimationHeading","liveAnimationResult","liveResultEmoji","liveResultTitle","liveResultSubtitle","closeLiveAnimationBtn",
     "chaosModal","chaosKicker","chaosTitle","chaosSubtitle","chaosEmoji","coinStage","arcadeCoin","closeChaosBtn","liveNotice",
     "selectorViewport","gameQueueList","queueProgress","gameInfoPopover","closeGameInfoBtn","gameInfoLogo",
-    "gameInfoStatus","gameInfoTitle","gameInfoMeta","gameInfoScore","gameInfoRules",
-    "openGameOverlayBtn","overlaySupportText"
+    "gameInfoStatus","gameInfoTitle","gameInfoMeta","gameInfoScore","gameInfoRules"
   ].map(id => [id,$(id)]));
 
   const modeNames = {wheel:"Prize Wheel",case:"Case Opening",slot:"Slot Machine",shuffle:"Arcade Shuffle"};
@@ -246,113 +243,6 @@
 
   function renderMyCard(){const member=me();if(!member)return;els.myEmoji.textContent=member.emoji||"🎮";els.myName.textContent=member.name;els.myDrinkCount.textContent=Math.max(0,Number(member.drinks)||0);const team=publicState().teamResult?.teams?.find(team=>team.players?.includes(member.name));els.myTeam.textContent=team?team.name:"No team assigned yet";const ended=roomData?.meta?.status==="ended"||publicState().nightEnded;els.myDrinkMinus.disabled=ended;els.myDrinkPlus.disabled=ended;}
 
-
-  const overlayCss=`
-    :root{color-scheme:dark;--bg:#080b13;--panel:#101522;--line:rgba(255,255,255,.10);--text:#f4f6ff;--muted:#8d96aa;--cyan:#5cf5ff;--pink:#ff4ed8;--yellow:#ffd84c;--green:#53f58c;--red:#ff596d}
-    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(circle at 20% 0,rgba(92,245,255,.08),transparent 28%),#070910;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:10px;overflow:auto}.hud{display:grid;gap:8px}.hud-head{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(135deg,rgba(92,245,255,.06),rgba(139,92,255,.05)),var(--panel);box-shadow:0 18px 45px rgba(0,0,0,.30)}.hud-logo{width:58px;height:58px;object-fit:contain;padding:5px;border-radius:12px;background:#070a10;border:1px solid var(--line)}.hud-kicker{display:block;color:var(--cyan);font-size:8px;font-weight:900;letter-spacing:.16em}.hud-title{margin:2px 0 3px;font-size:20px;line-height:1;overflow-wrap:anywhere}.hud-meta{margin:0;color:var(--muted);font-size:9px;line-height:1.35}.hud-close{width:32px;height:32px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.04);color:var(--text);font-size:18px;cursor:pointer}.hud-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.hud-box{min-width:0;padding:9px;border:1px solid var(--line);border-radius:13px;background:rgba(16,21,34,.92)}.hud-box>small{display:block;color:var(--muted);font-size:7px;font-weight:900;letter-spacing:.13em}.hud-me{display:flex;align-items:center;gap:7px;margin-top:5px}.hud-emoji{font-size:24px}.hud-me strong{display:block;font-size:11px}.hud-me span{display:block;color:var(--cyan);font-size:8px;margin-top:1px}.hud-score strong{display:block;margin-top:5px;font-size:12px;line-height:1.3}.hud-score span{display:block;margin-top:3px;color:var(--muted);font-size:8px;line-height:1.35}.hud-drinks{display:grid;grid-template-columns:34px 1fr 34px;gap:6px;align-items:center;margin-top:5px}.hud-drinks button{height:34px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.05);color:var(--text);font-size:18px;font-weight:900;cursor:pointer}.hud-drinks button:last-child{border-color:rgba(83,245,140,.28);background:rgba(83,245,140,.08);color:#aaffc1}.hud-drinks strong{text-align:center;font-size:24px}.hud-modifier{padding:8px 10px;border:1px solid rgba(255,216,76,.22);border-radius:12px;background:rgba(255,216,76,.05);color:#ffe789;font-size:9px;font-weight:800;line-height:1.4}.hud-team{padding:9px;border:1px solid var(--line);border-radius:13px;background:rgba(16,21,34,.92)}.hud-team-head{display:flex;align-items:center;justify-content:space-between;gap:7px}.hud-team-head small{color:var(--muted);font-size:7px;font-weight:900;letter-spacing:.13em}.hud-team-head strong{font-size:11px}.hud-team-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.hud-player{display:flex;align-items:center;gap:4px;padding:5px 7px;border-radius:8px;background:rgba(255,255,255,.04);font-size:8px}.hud-player.me{outline:1px solid rgba(92,245,255,.45);background:rgba(92,245,255,.07)}.hud-rules{display:grid;gap:6px}.hud-rule{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:rgba(16,21,34,.92)}.hud-rule h3{margin:0;padding:6px 8px;font-size:8px;letter-spacing:.08em}.hud-rule.red h3{color:#ff9aa6;background:rgba(255,89,109,.06)}.hud-rule.yellow h3{color:#ffe789;background:rgba(255,216,76,.06)}.hud-rule.green h3{color:#aaffc1;background:rgba(83,245,140,.06)}.hud-rule ul{margin:0;padding:6px 9px 7px 23px}.hud-rule li{margin:0 0 4px;color:#dbe0ed;font-size:8px;line-height:1.35}.hud-empty{padding:20px;text-align:center;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:10px}.hud-footer{text-align:center;color:#657086;font-size:7px;padding:2px}.hud-status{color:#9dffbd!important}.hud-ended{color:#ff9aa6!important}@media(max-width:340px){body{padding:6px}.hud-grid{grid-template-columns:1fr}.hud-head{grid-template-columns:48px minmax(0,1fr) auto}.hud-logo{width:48px;height:48px}.hud-title{font-size:17px}}
-  `;
-
-  function overlayIsOpen(){
-    return Boolean(overlayWindow && !overlayWindow.closed && overlayWindow.document);
-  }
-
-  function overlayRoundText(round){
-    if(!round)return {main:"Scoreless / not entered",detail:""};
-    if(round.scoreless)return {main:"Scoreless / not entered",detail:""};
-    const winners=(round.winners||[]).map(name=>`${emojiForName(name)} ${name}`).join(" + ");
-    const detail=(round.scores||[]).map(entry=>`${entry.label} ${entry.score}`).join(" · ");
-    return {main:winners?`${winners} ${round.winners?.length===1?"leads / wins":"win"}`:"Result saved",detail};
-  }
-
-  function renderOverlay(){
-    if(!overlayIsOpen())return;
-    const doc=overlayWindow.document;
-    const root=doc.getElementById("overlayRoot");
-    if(!root)return;
-    const ps=publicState();
-    const current=game(ps.acceptedGameId);
-    const member=me();
-    const ended=roomData?.meta?.status==="ended"||ps.nightEnded;
-    if(!member){root.innerHTML='<div class="hud-empty">Player identity is no longer available.</div>';return;}
-    const team=ps.teamResult?.gameId===current?.id?ps.teamResult?.teams?.find(item=>item.players?.includes(member.name)):null;
-    const round=(ps.matchHistory||[]).find(item=>item.id===ps.activeRoundId);
-    const score=overlayRoundText(round);
-    const drinks=Math.max(0,Number(member.drinks)||0);
-    const logo=current?new URL(current.logo,location.href).href:"";
-    const ruleTypes=window.ARCADE_CONFIG.ruleTypes;
-    const rules=current?["red","yellow","green"].map(type=>{
-      const list=current.rules?.[type]||[];
-      if(!list.length)return "";
-      return `<section class="hud-rule ${type}"><h3>${ruleTypes[type].icon} ${escapeHtml(ruleTypes[type].label)}</h3><ul>${list.map(rule=>`<li>${escapeHtml(rule)}</li>`).join("")}</ul></section>`;
-    }).join(""):"";
-    const teamPlayers=team?.players?.map(name=>`<span class="hud-player ${name===member.name?"me":""}">${emojiForName(name)} ${escapeHtml(name)}</span>`).join("")||"";
-    root.innerHTML=`<div class="hud">
-      <header class="hud-head">
-        ${current?`<img class="hud-logo" src="${logo}" alt="">`:`<div class="hud-logo" style="display:grid;place-items:center;font-size:25px">🎮</div>`}
-        <div><span class="hud-kicker">${ended?"GAME NIGHT COMPLETE":"LIVE GAME OVERLAY"}</span><h1 class="hud-title">${escapeHtml(current?.name||"Waiting for a game…")}</h1><p class="hud-meta">${escapeHtml(current?[current.players,current.price,current.note].filter(Boolean).join(" · "):"The admin has not selected a game yet.")}</p></div>
-        <button class="hud-close" data-overlay-close type="button" aria-label="Close overlay">×</button>
-      </header>
-      <div class="hud-grid">
-        <section class="hud-box"><small>YOU</small><div class="hud-me"><span class="hud-emoji">${member.emoji||"🎮"}</span><div><strong>${escapeHtml(member.name)}</strong><span>${escapeHtml(team?.name||"No team assigned")}</span></div></div></section>
-        <section class="hud-box hud-score"><small>CURRENT RESULT</small><strong>${escapeHtml(score.main)}</strong>${score.detail?`<span>${escapeHtml(score.detail)}</span>`:""}</section>
-        <section class="hud-box"><small>YOUR DRINK COUNTER</small><div class="hud-drinks"><button data-overlay-drink="-1" ${ended?"disabled":""}>−</button><strong>${drinks}</strong><button data-overlay-drink="1" ${ended?"disabled":""}>+</button></div></section>
-        <section class="hud-box"><small>ROOM</small><div class="hud-me"><span class="hud-emoji">📡</span><div><strong>${escapeHtml(roomCode||"------")}</strong><span class="${ended?"hud-ended":"hud-status"}">${ended?"NIGHT ENDED":"LIVE"}</span></div></div></section>
-      </div>
-      ${ps.currentModifier?`<div class="hud-modifier">⚡ ${escapeHtml(ps.currentModifier)}</div>`:""}
-      ${team?`<section class="hud-team"><div class="hud-team-head"><small>YOUR TEAM</small><strong>${escapeHtml(team.name)}</strong></div><div class="hud-team-list">${teamPlayers}</div></section>`:""}
-      ${current?`<section class="hud-rules">${rules}</section>`:'<div class="hud-empty">Rules, team and score will appear here when the game starts.</div>'}
-      <div class="hud-footer">GAME NIGHT ARCADE · updates live from Firebase</div>
-    </div>`;
-    root.querySelector("[data-overlay-close]")?.addEventListener("click",closeGameOverlay);
-    root.querySelectorAll("[data-overlay-drink]").forEach(button=>button.addEventListener("click",()=>changeDrink(Number(button.dataset.overlayDrink))));
-  }
-
-  function prepareOverlayDocument(win){
-    const doc=win.document;
-    doc.title="Game Night Overlay";
-    doc.head.innerHTML=`<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${overlayCss}</style>`;
-    doc.body.innerHTML='<main id="overlayRoot"><div class="hud-empty">Loading game-night info…</div></main>';
-    win.addEventListener("pagehide",()=>{if(overlayWindow===win){overlayWindow=null;overlayKind=null;updateOverlayButton();}},{once:true});
-    win.addEventListener("beforeunload",()=>{if(overlayWindow===win){overlayWindow=null;overlayKind=null;updateOverlayButton();}},{once:true});
-  }
-
-  function updateOverlayButton(){
-    const open=overlayIsOpen();
-    els.openGameOverlayBtn.textContent=open?"✓ OVERLAY OPEN":"🖥 GAME OVERLAY";
-    els.openGameOverlayBtn.classList.toggle("active",open);
-    if(open){
-      els.overlaySupportText.textContent=overlayKind==="pip"?"Always-on-top overlay is running.":"Compact overlay window is open.";
-    }else if("documentPictureInPicture" in window && window.isSecureContext){
-      els.overlaySupportText.textContent="Opens an always-on-top HUD over your game.";
-    }else{
-      els.overlaySupportText.textContent="Your browser will use a compact pop-out window for the HUD.";
-    }
-  }
-
-  async function openGameOverlay(){
-    window.ArcadeAudio.unlock();
-    if(overlayIsOpen()){
-      try{overlayWindow.focus();}catch(_){}
-      renderOverlay();
-      return;
-    }
-    if("documentPictureInPicture" in window && window.isSecureContext){
-      try{
-        const pip=await window.documentPictureInPicture.requestWindow({width:420,height:720});
-        overlayWindow=pip;overlayKind="pip";prepareOverlayDocument(pip);renderOverlay();updateOverlayButton();showNotice("🖥 Game Overlay opened — it will stay above other windows.",3500);return;
-      }catch(error){console.warn("Document Picture-in-Picture unavailable",error);}
-    }
-    const popup=window.open("","gameNightOverlay","popup=yes,width=420,height=720,resizable=yes,scrollbars=yes");
-    if(!popup){showNotice("Pop-up blocked. Allow pop-ups for this site to use the fallback overlay.",5000);return;}
-    overlayWindow=popup;overlayKind="popup";prepareOverlayDocument(popup);renderOverlay();updateOverlayButton();showNotice("🖥 Compact overlay opened. Use your OS/browser to keep it on top if needed.",4500);
-  }
-
-  function closeGameOverlay(){
-    if(!overlayIsOpen()){overlayWindow=null;overlayKind=null;updateOverlayButton();return;}
-    try{overlayWindow.close();}catch(_){}
-    overlayWindow=null;overlayKind=null;updateOverlayButton();
-  }
-
   function renderRankings(){
     const ps=publicState();const players=ps.players||Object.values(members()).map(m=>m.name);const board=window.ArcadeSession.leaderboard(players,ps.matchHistory||[],drinksMap());
     els.playerLeaderboard.innerHTML=board.map((row,index)=>`<div class="leaderboard-row ${index===0&&row.wins>0?"leader":""}"><span class="leader-rank">${index+1}</span><span class="dashboard-player-emoji">${emojiForName(row.name)}</span><span class="leader-name"><strong>${escapeHtml(row.name)}</strong><small>${row.scoredGames} scored · ${row.games} played</small></span><strong class="wins-badge">${row.wins}W</strong></div>`).join("");
@@ -374,7 +264,7 @@
     const text=ended?"Game night has ended.":ready?"Ready — choose one sound.":`Cooldown: ${Math.ceil(remain/1000)}s`;els.soundboardCooldown.textContent=text;els.soundCooldownText.textContent=ready?"Soundboard ready.":text;els.openSoundboardBtn.disabled=!ready;
   }
 
-  function renderAll(){if(!memberId||!me())return;renderCurrentGame();renderMyCard();renderGameQueue();renderRankings();renderHistory();renderPlayers();renderEnded();renderSoundboard();renderOverlay();updateOverlayButton();}
+  function renderAll(){if(!memberId||!me())return;renderCurrentGame();renderMyCard();renderGameQueue();renderRankings();renderHistory();renderPlayers();renderEnded();renderSoundboard();}
 
   function setLiveMode(mode){document.body.dataset.mode=mode;document.querySelectorAll("#liveAnimationModal .mode-layer").forEach(layer=>layer.classList.remove("active"));$(`${mode}Mode`)?.classList.add("active");els.selectorViewport.className=`selector-viewport mode-${mode} spectator-selector`;}
   function showLiveResult({emoji="",title,subtitle}){els.liveResultEmoji.textContent=emoji;els.liveResultTitle.textContent=title;els.liveResultSubtitle.textContent=subtitle||"";els.liveAnimationResult.classList.remove("hidden");}
@@ -401,7 +291,6 @@
     els.joinRoomBtn.addEventListener("click",()=>join(els.roomCodeInput.value));els.roomCodeInput.addEventListener("keydown",e=>{if(e.key==="Enter")join(els.roomCodeInput.value)});
     els.claimNameList.addEventListener("click",e=>{const button=e.target.closest("[data-claim-name]");if(!button||button.disabled)return;selectedMemberId=button.dataset.claimName;renderClaimChoices()});els.claimEmojiGrid.addEventListener("click",e=>{const button=e.target.closest("[data-claim-emoji]");if(!button||button.disabled)return;selectedEmoji=button.dataset.claimEmoji;renderClaimChoices()});els.claimPlayerBtn.addEventListener("click",claimPlayer);
     els.myDrinkMinus.addEventListener("click",()=>changeDrink(-1));els.myDrinkPlus.addEventListener("click",()=>changeDrink(1));
-    els.openGameOverlayBtn.addEventListener("click",openGameOverlay);
     els.enableLiveSoundBtn.addEventListener("click",()=>{window.ArcadeAudio.unlock();window.ArcadeAudio.play("button",{volume:.35});els.enableLiveSoundBtn.innerHTML="✅ <span>Sounds ready</span>";showNotice("🔊 Live sounds enabled on this device.")});
     els.openSoundboardBtn.addEventListener("click",()=>{renderSoundboard();els.soundboardModal.classList.remove("hidden")});els.closeSoundboardBtn.addEventListener("click",()=>els.soundboardModal.classList.add("hidden"));els.soundboardGrid.addEventListener("click",e=>{const button=e.target.closest("[data-sound-id]");if(button&&!button.disabled)playSound(button.dataset.soundId)});
     document.querySelectorAll(".player-tab").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll(".player-tab").forEach(b=>b.classList.toggle("active",b===button));document.querySelectorAll(".player-tab-panel").forEach(panel=>panel.classList.remove("active"));$(`tab${button.dataset.tab[0].toUpperCase()}${button.dataset.tab.slice(1)}`).classList.add("active")}));
@@ -452,6 +341,6 @@
     cooldownTimer=setInterval(()=>{if(memberId&&roomData)renderSoundboard()},500);
   }
 
-  async function init(){window.ArcadeAudio.setup({soundEnabled:true,volume:.8});bind();updateOverlayButton();const query=new URLSearchParams(location.search).get("room");const saved=localStorage.getItem("game-night-player-room-v1");const initial=window.ArcadeCloud.cleanCode(query||saved||"");els.roomCodeInput.value=initial;if(initial)join(initial);}
+  async function init(){window.ArcadeAudio.setup({soundEnabled:true,volume:.8});bind();const query=new URLSearchParams(location.search).get("room");const saved=localStorage.getItem("game-night-player-room-v1");const initial=window.ArcadeCloud.cleanCode(query||saved||"");els.roomCodeInput.value=initial;if(initial)join(initial);}
   init();
 })();
