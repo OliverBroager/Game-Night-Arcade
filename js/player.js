@@ -21,7 +21,7 @@
     "claimPlayerBtn","soundboardModal","closeSoundboardBtn","soundboardGrid","soundboardCooldown","liveAnimationModal",
     "liveAnimationHeading","liveAnimationResult","liveResultEmoji","liveResultTitle","liveResultSubtitle","closeLiveAnimationBtn",
     "chaosModal","chaosKicker","chaosTitle","chaosSubtitle","chaosEmoji","coinStage","arcadeCoin","closeChaosBtn","liveNotice",
-    "selectorViewport"
+    "selectorViewport","gameQueueList","queueProgress"
   ].map(id => [id,$(id)]));
 
   const modeNames = {wheel:"Prize Wheel",case:"Case Opening",slot:"Slot Machine",shuffle:"Arcade Shuffle"};
@@ -74,6 +74,57 @@
     finally{els.claimPlayerBtn.textContent="CLAIM & ENTER";els.claimPlayerBtn.disabled=!(selectedMemberId&&selectedEmoji);}
   }
 
+
+  function compactRoundScore(round){
+    if(!round)return "";
+    if(round.scoreless || !(round.scores||[]).length)return "—";
+    const scores=round.scores||[];
+    if(scores.length<=2)return scores.map(entry=>String(entry.score)).join("–");
+    const direction=round.scoreDirection||"high";
+    const numeric=scores.map(entry=>Number(entry.score)).filter(Number.isFinite);
+    if(!numeric.length)return "✓";
+    const winning=direction==="low"?Math.min(...numeric):Math.max(...numeric);
+    return String(winning);
+  }
+
+  function compactRoundResult(round){
+    if(!round)return "UPCOMING";
+    if(round.scoreless)return "SCORELESS";
+    const winners=round.winners||[];
+    if(!winners.length)return "SCORED";
+    return winners.length===1?`🏆 ${winners[0]}`:`🏆 ${winners.length} winners`;
+  }
+
+  function renderGameQueue(){
+    const ps=publicState();
+    const enabled=new Set(Array.isArray(ps.enabledGameIds)?ps.enabledGameIds:window.GAMES.map(item=>item.id));
+    const rounds=ps.matchHistory||[];
+    const roundIds=new Set(rounds.map(round=>round.gameId));
+    const queueGames=window.GAMES.filter(item=>enabled.has(item.id)||roundIds.has(item.id));
+    const activeRoundId=ps.activeRoundId;
+    const currentGameId=ps.acceptedGameId;
+    const ended=roomData?.meta?.status==="ended"||ps.nightEnded;
+    let completed=0;
+
+    els.gameQueueList.innerHTML=queueGames.map((item,index)=>{
+      const gameRounds=rounds.filter(round=>round.gameId===item.id);
+      const latest=gameRounds[gameRounds.length-1]||null;
+      const isCurrent=item.id===currentGameId&&!ended;
+      const isPlayed=Boolean(latest)&&(ended||latest.id!==activeRoundId);
+      if(isPlayed)completed+=1;
+      const score=latest?compactRoundScore(latest):"";
+      const status=isCurrent?"NOW PLAYING":isPlayed?compactRoundResult(latest):"UPCOMING";
+      return `<article class="game-queue-item ${isCurrent?"current":""} ${isPlayed?"played":""}">
+        <span class="queue-number">${String(index+1).padStart(2,"0")}</span>
+        <span class="queue-logo-wrap"><img src="${item.logo}" alt="${escapeHtml(item.name)} logo"></span>
+        <span class="queue-game-copy"><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(status)}</small></span>
+        <span class="queue-score ${score?"has-score":""}">${escapeHtml(score||"·")}</span>
+      </article>`;
+    }).join("")||'<p class="empty-dashboard">The admin has not enabled any games yet.</p>';
+
+    els.queueProgress.textContent=`${completed} / ${queueGames.length}`;
+  }
+
   function renderCurrentGame(){
     const ps=publicState();const current=game(ps.acceptedGameId);if(!current){els.liveGameName.textContent="Waiting for the first game…";els.liveGameLogo.classList.add("hidden");els.liveGameMeta.textContent="The admin controls the arcade. This page updates automatically.";els.playerRules.innerHTML="";els.playerTeams.innerHTML="";els.liveScore.innerHTML="";return;}
     els.liveGameName.textContent=current.name;els.liveGameLogo.src=current.logo;els.liveGameLogo.alt=`${current.name} logo`;els.liveGameLogo.classList.remove("hidden");els.liveGameMeta.textContent=[current.players,current.price,current.note].filter(Boolean).join(" · ");
@@ -106,7 +157,7 @@
     const text=ended?"Game night has ended.":ready?"Ready — choose one sound.":`Cooldown: ${Math.ceil(remain/1000)}s`;els.soundboardCooldown.textContent=text;els.soundCooldownText.textContent=ready?"Soundboard ready.":text;els.openSoundboardBtn.disabled=!ready;
   }
 
-  function renderAll(){if(!memberId||!me())return;renderCurrentGame();renderMyCard();renderRankings();renderHistory();renderPlayers();renderEnded();renderSoundboard();}
+  function renderAll(){if(!memberId||!me())return;renderCurrentGame();renderMyCard();renderGameQueue();renderRankings();renderHistory();renderPlayers();renderEnded();renderSoundboard();}
 
   function setLiveMode(mode){document.body.dataset.mode=mode;document.querySelectorAll("#liveAnimationModal .mode-layer").forEach(layer=>layer.classList.remove("active"));$(`${mode}Mode`)?.classList.add("active");els.selectorViewport.className=`selector-viewport mode-${mode} spectator-selector`;}
   function showLiveResult({emoji="",title,subtitle}){els.liveResultEmoji.textContent=emoji;els.liveResultTitle.textContent=title;els.liveResultSubtitle.textContent=subtitle||"";els.liveAnimationResult.classList.remove("hidden");}
@@ -136,7 +187,10 @@
     els.enableLiveSoundBtn.addEventListener("click",()=>{window.ArcadeAudio.unlock();window.ArcadeAudio.play("button",{volume:.35});els.enableLiveSoundBtn.innerHTML="✅ <span>Sounds ready</span>";showNotice("🔊 Live sounds enabled on this device.")});
     els.openSoundboardBtn.addEventListener("click",()=>{renderSoundboard();els.soundboardModal.classList.remove("hidden")});els.closeSoundboardBtn.addEventListener("click",()=>els.soundboardModal.classList.add("hidden"));els.soundboardGrid.addEventListener("click",e=>{const button=e.target.closest("[data-sound-id]");if(button&&!button.disabled)playSound(button.dataset.soundId)});
     document.querySelectorAll(".player-tab").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll(".player-tab").forEach(b=>b.classList.toggle("active",b===button));document.querySelectorAll(".player-tab-panel").forEach(panel=>panel.classList.remove("active"));$(`tab${button.dataset.tab[0].toUpperCase()}${button.dataset.tab.slice(1)}`).classList.add("active")}));
-    els.closeLiveAnimationBtn.addEventListener("click",()=>els.liveAnimationModal.classList.add("hidden"));els.closeChaosBtn.addEventListener("click",()=>{els.chaosModal.classList.add("hidden");els.arcadeCoin.className="arcade-coin"});
+    const dismissLiveAnimation=()=>els.liveAnimationModal.classList.add("hidden");
+    els.closeLiveAnimationBtn.addEventListener("click",dismissLiveAnimation);
+    els.liveAnimationModal.addEventListener("pointerdown",dismissLiveAnimation);
+    els.closeChaosBtn.addEventListener("click",()=>{els.chaosModal.classList.add("hidden");els.arcadeCoin.className="arcade-coin"});
     cooldownTimer=setInterval(()=>{if(memberId&&roomData)renderSoundboard()},500);
   }
 

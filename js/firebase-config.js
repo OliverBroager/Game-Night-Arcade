@@ -13,7 +13,7 @@
 window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyBWvN7uEGfWI-1r_q0euDH42okVMf3o8LU",
   authDomain: "game-night-arcade-b6d48.firebaseapp.com",
-  databaseURL: "https://game-night-arcade-b6d48-default-rtdb.europe-west1.firebasedatabase.app",
+  databaseURL: "https://game-night-arcade-b6d48-default-rtdb.europe-west1.firebasedatabase.app/",
   projectId: "game-night-arcade-b6d48",
   appId: "1:1027022940049:web:b130a492832317d26bdc30"
 };

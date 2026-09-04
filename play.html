@@ -26,57 +26,112 @@
       <div id="endedPodium" class="ended-podium"></div>
     </section>
 
-    <section class="player-hero-grid">
-      <article class="player-current-game panel">
-        <div class="player-section-heading">
-          <div><span class="eyebrow">CURRENT GAME</span><h1 id="liveGameName">Waiting for the first game…</h1></div>
-          <img id="liveGameLogo" class="live-game-logo hidden" alt="" />
-        </div>
-        <p id="liveGameMeta" class="game-meta">The admin controls the arcade. This page updates automatically.</p>
-        <div id="liveModifier" class="live-modifier hidden"></div>
-        <div id="playerTeams" class="spectator-team-grid"></div>
-        <div id="liveScore" class="live-score-card"></div>
-        <div id="playerRules" class="player-rules"></div>
-      </article>
+    <div class="player-dashboard-grid">
+      <div class="player-main-column">
+        <section class="player-now-grid">
+          <article class="player-current-game panel">
+            <div class="now-playing-head">
+              <div class="now-playing-copy">
+                <span class="eyebrow">NOW PLAYING</span>
+                <h1 id="liveGameName">Waiting for the first game…</h1>
+                <p id="liveGameMeta" class="game-meta">The admin controls the arcade. This page updates automatically.</p>
+              </div>
+              <img id="liveGameLogo" class="live-game-logo hidden" alt="" />
+            </div>
 
-      <aside class="my-player-card panel">
-        <span class="eyebrow">YOUR PLAYER</span>
-        <div class="my-identity"><span id="myEmoji">🎮</span><div><h2 id="myName">Player</h2><p id="myTeam">Waiting for teams</p></div></div>
-        <div class="my-drinks">
-          <small>YOUR DRINK COUNTER</small>
-          <div class="my-drink-controls"><button id="myDrinkMinus" type="button">−</button><strong id="myDrinkCount">0</strong><button id="myDrinkPlus" type="button">+</button></div>
-          <p>Only you and the admin can change this counter.</p>
+            <div id="liveModifier" class="live-modifier hidden"></div>
+
+            <div class="current-game-status-grid">
+              <div class="current-status-block">
+                <span class="section-mini-label">TEAMS</span>
+                <div id="playerTeams" class="spectator-team-grid"></div>
+              </div>
+              <div class="current-status-block">
+                <span class="section-mini-label">RESULT</span>
+                <div id="liveScore" class="live-score-card"></div>
+              </div>
+            </div>
+
+          </article>
+
+          <aside class="my-player-card panel">
+            <span class="eyebrow">YOU</span>
+            <div class="my-identity">
+              <span id="myEmoji">🎮</span>
+              <div><h2 id="myName">Player</h2><p id="myTeam">Waiting for teams</p></div>
+            </div>
+            <div class="my-drinks">
+              <small>YOUR DRINK COUNTER</small>
+              <div class="my-drink-controls">
+                <button id="myDrinkMinus" type="button" aria-label="Remove one drink">−</button>
+                <strong id="myDrinkCount">0</strong>
+                <button id="myDrinkPlus" type="button" aria-label="Add one drink">+</button>
+              </div>
+              <p>Only you and the admin can change this.</p>
+            </div>
+            <button id="openSoundboardBtn" class="primary-btn huge" type="button">🔊 SOUND BOARD</button>
+            <p id="soundCooldownText" class="cooldown-text">Ready to play a sound.</p>
+          </aside>
+        </section>
+
+        <section class="player-rules-panel panel">
+          <div class="rules-heading">
+            <div><span class="eyebrow">DRINKING RULES</span><h2>Rules for this game</h2></div>
+            <small>Red = drink · Yellow = challenge · Green = give</small>
+          </div>
+          <div id="playerRules" class="player-rules"></div>
+        </section>
+
+        <nav class="player-tabs" aria-label="Player dashboard sections">
+          <button class="player-tab active" data-tab="rankings" type="button">🏆 Rankings</button>
+          <button class="player-tab" data-tab="history" type="button">🕹 History</button>
+          <button class="player-tab" data-tab="players" type="button">👥 Players</button>
+        </nav>
+
+        <section id="tabRankings" class="player-tab-panel active">
+          <div class="player-two-col">
+            <article class="player-info-panel panel">
+              <div class="player-section-heading"><div><span class="eyebrow">LEADERBOARD</span><h2>Most wins</h2></div></div>
+              <div id="playerLeaderboard" class="leaderboard-list"></div>
+            </article>
+            <article class="player-info-panel panel">
+              <div class="player-section-heading"><div><span class="eyebrow">COUNTER</span><h2>Drink totals</h2></div></div>
+              <div id="drinkLeaderboard" class="leaderboard-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="tabHistory" class="player-tab-panel">
+          <div class="player-two-col">
+            <article class="player-info-panel panel">
+              <div class="player-section-heading"><div><span class="eyebrow">TONIGHT</span><h2>Match log</h2></div></div>
+              <div id="playerCurrentHistory" class="match-history-list"></div>
+            </article>
+            <article class="player-info-panel panel">
+              <div class="player-section-heading"><div><span class="eyebrow">ARCHIVE</span><h2>Previous nights</h2></div></div>
+              <div id="playerArchiveList" class="archive-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="tabPlayers" class="player-tab-panel">
+          <article class="player-info-panel panel">
+            <div class="player-section-heading"><div><span class="eyebrow">LOBBY</span><h2>Tonight's players</h2></div></div>
+            <div id="allPlayersGrid" class="all-players-grid"></div>
+          </article>
+        </section>
+      </div>
+
+      <aside class="game-queue panel" aria-labelledby="gameQueueTitle">
+        <div class="game-queue-head">
+          <div><span class="eyebrow">TONIGHT'S ARCADE</span><h2 id="gameQueueTitle">Game list</h2></div>
+          <span id="queueProgress" class="queue-progress">0 / 0</span>
         </div>
-        <button id="openSoundboardBtn" class="primary-btn huge" type="button">🔊 SOUND BOARD</button>
-        <p id="soundCooldownText" class="cooldown-text">Ready to play a sound.</p>
+        <p class="queue-help">Played games fade out. The latest saved score stays visible.</p>
+        <div id="gameQueueList" class="game-queue-list"></div>
       </aside>
-    </section>
-
-    <nav class="player-tabs" aria-label="Player dashboard sections">
-      <button class="player-tab active" data-tab="rankings" type="button">🏆 Rankings</button>
-      <button class="player-tab" data-tab="history" type="button">🕹 History</button>
-      <button class="player-tab" data-tab="players" type="button">👥 Players</button>
-    </nav>
-
-    <section id="tabRankings" class="player-tab-panel active">
-      <div class="player-two-col">
-        <article class="player-info-panel panel"><div class="player-section-heading"><div><span class="eyebrow">LEADERBOARD</span><h2>Most wins</h2></div></div><div id="playerLeaderboard" class="leaderboard-list"></div></article>
-        <article class="player-info-panel panel"><div class="player-section-heading"><div><span class="eyebrow">COUNTER</span><h2>Drink totals</h2></div></div><div id="drinkLeaderboard" class="leaderboard-list"></div></article>
-      </div>
-    </section>
-
-    <section id="tabHistory" class="player-tab-panel">
-      <div class="player-two-col">
-        <article class="player-info-panel panel"><div class="player-section-heading"><div><span class="eyebrow">TONIGHT</span><h2>Match log</h2></div></div><div id="playerCurrentHistory" class="match-history-list"></div></article>
-        <article class="player-info-panel panel"><div class="player-section-heading"><div><span class="eyebrow">ARCHIVE</span><h2>Previous nights</h2></div></div><div id="playerArchiveList" class="archive-list"></div></article>
-      </div>
-    </section>
-
-    <section id="tabPlayers" class="player-tab-panel">
-      <article class="player-info-panel panel"><div class="player-section-heading"><div><span class="eyebrow">LOBBY</span><h2>Tonight's players</h2></div></div><div id="allPlayersGrid" class="all-players-grid"></div></article>
-    </section>
+    </div>
   </main>
-
   <!-- Join / claim -->
   <div id="playerJoinModal" class="modal-wrap" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
     <div class="modal join-modal">
@@ -111,7 +166,7 @@
 
   <!-- Live machine broadcast -->
   <div id="liveAnimationModal" class="live-animation-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="liveAnimationHeading">
-    <div class="live-animation-top"><span class="eyebrow">LIVE FROM THE ADMIN</span><h2 id="liveAnimationHeading">The machine is rolling…</h2></div>
+    <div class="live-animation-top"><span class="eyebrow">LIVE FROM THE ADMIN</span><h2 id="liveAnimationHeading">The machine is rolling…</h2><small class="tap-dismiss-hint">Tap anywhere to dismiss</small></div>
     <div id="selectorViewport" class="selector-viewport mode-wheel spectator-selector">
       <div id="wheelMode" class="mode-layer active"><div class="wheel-wrap"><div class="wheel-pointer"></div><canvas id="wheelCanvas" width="900" height="900"></canvas><div class="wheel-hub spectator-hub"><span class="wheel-hub-small">LIVE</span><strong>ROLL</strong></div></div></div>
       <div id="caseMode" class="mode-layer"><div class="case-machine"><div class="case-header-lights"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="case-window"><div class="case-marker"></div><div id="caseTrack" class="case-track"></div></div></div></div>

@@ -26,8 +26,8 @@ window.ARCADE_CONFIG = {
     reroll: "sounds/reroll.mp3"
   },
   ruleTypes: {
-    red: { label: "DRINK", icon: "▼", description: "You drink" },
-    yellow: { label: "CHALLENGE", icon: "★", description: "A special challenge or restriction" },
+    red: { label: "SHOT", icon: "★", description: "Take a shot" },
+    yellow: { label: "DRINK", icon: "▼", description: "Drink" },
     green: { label: "GIVE", icon: "▲", description: "Give drinks to somebody else" }
   }
 };
