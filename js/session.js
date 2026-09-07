@@ -137,6 +137,17 @@ window.ArcadeSession = (() => {
     return MODIFIERS[randomIndex(MODIFIERS.length)];
   }
 
+  // Keep rules readable at a glance, including custom games added later.
+  function simpleRule(rule) {
+    let text = String(rule || "").trim();
+    text = text.replace(/^Every time you /i, "").replace(/^If you /i, "").replace(/^If /i, "");
+    text = text.replace(/take 1 shot/gi, "SHOT").replace(/take (\d+) shots?/gi, "$1 SHOTS");
+    text = text.replace(/take 1 (?:drink|sip)/gi, "DRINK 1").replace(/take (\d+) (?:drinks?|sips?)/gi, "DRINK $1");
+    text = text.replace(/give 1 (?:drink|sip)/gi, "GIVE 1").replace(/give (\d+) (?:drinks?|sips?)(?: total)?/gi, "GIVE $1");
+    text = text.replace(/:\s*/g, " → ").replace(/\.\s*$/, "");
+    return text;
+  }
+
   return {
     EMOJIS,
     MODIFIERS,
@@ -149,6 +160,7 @@ window.ArcadeSession = (() => {
     leaderboard,
     randomPlayer,
     coinFlip,
-    randomModifier
+    randomModifier,
+    simpleRule
   };
 })();

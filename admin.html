@@ -117,8 +117,8 @@
         <h2>No game selected</h2>
         <p>Spin a mode, accept the prize, and its drinking rules will appear here.</p>
         <div class="rule-legend">
-          <span class="legend red">● DRINK</span>
-          <span class="legend yellow">● CHALLENGE</span>
+          <span class="legend red">● SHOT</span>
+          <span class="legend yellow">● DRINK</span>
           <span class="legend green">● GIVE</span>
         </div>
       </div>
@@ -331,6 +331,19 @@
       <h2 id="chaosTitle">HEADS</h2>
       <p id="chaosSubtitle" class="winner-subtitle"></p>
       <button id="closeChaosBtn" class="primary-btn large" type="button">CONTINUE</button>
+    </div>
+  </div>
+
+  <!-- Admin service menu -->
+  <div id="servicePanel" class="service-panel hidden" role="dialog" aria-modal="true" aria-labelledby="serviceTitle">
+    <div class="service-console">
+      <div class="service-console-head">
+        <div><span class="eyebrow">SERVICE MENU</span><h2 id="serviceTitle">Rig next player spin</h2></div>
+        <button id="serviceCloseBtn" class="icon-btn" type="button" aria-label="Close rig menu">×</button>
+      </div>
+      <p>This only affects the next <strong>Pick a Player</strong> roll. Nothing about the rig is sent to player screens.</p>
+      <div id="servicePlayerList" class="service-player-list"></div>
+      <button id="serviceClearBtn" class="secondary-btn" type="button">CLEAR RIG</button>
     </div>
   </div>
 

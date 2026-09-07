@@ -14,6 +14,7 @@
   let cloudUnsubscribe = null;
   let cloudSaveTimer = null;
   let firstCloudSnapshot = true;
+  let serviceTarget = null;
   const lastSoundSeen = new Map();
 
   const $ = id => document.getElementById(id);
@@ -32,7 +33,7 @@
     "closeNightDrawerBtn","nightSummary","drinkPlayerList","leaderboardList","randomPlayerBtn","coinFlipBtn",
     "modifierBtn","extraResult","matchHistoryList","adminArchiveList","endNightBtn","startNewNightBtn",
     "playerCountInput","decreasePlayerCountBtn","increasePlayerCountBtn","playerNameList","playerSetupError",
-    "savePlayersBtn","cancelPlayerSetupBtn","roomCodeLarge","cloudStatusText","roomQr","playerJoinUrl",
+    "savePlayersBtn","cancelPlayerSetupBtn","servicePanel","servicePlayerList","serviceCloseBtn","serviceClearBtn","roomCodeLarge","cloudStatusText","roomQr","playerJoinUrl",
     "copyPlayerLinkBtn","openPlayerViewBtn","roomRosterList","continueLocalBtn","closeChaosBtn","chaosKicker",
     "chaosTitle","chaosSubtitle","chaosSmall","chaosEmoji","coinStage","arcadeCoin"
   ].map(id => [id, id === "body" ? document.body : $(id)]));
@@ -177,7 +178,7 @@
     const types = window.ARCADE_CONFIG.ruleTypes;
     els.ruleSections.innerHTML = ["red","yellow","green"].map(type => {
       const rules = game.rules?.[type] || []; const info = types[type];
-      return `<section class="rule-group ${type}"><div class="rule-group-title"><span>${info.icon} ${info.label}</span><span>${rules.length} RULE${rules.length === 1 ? "" : "S"}</span></div><ul class="rule-list">${rules.map(rule => `<li>${escapeHtml(rule)}</li>`).join("")}</ul></section>`;
+      return `<section class="rule-group ${type}"><div class="rule-group-title"><span>${info.icon} ${info.label}</span><span>${rules.length} RULE${rules.length === 1 ? "" : "S"}</span></div><ul class="rule-list">${rules.map(rule => `<li>${escapeHtml(window.ArcadeSession.simpleRule(rule))}</li>`).join("")}</ul></section>`;
     }).join("");
   }
 
@@ -291,10 +292,33 @@
   function showChaos({kicker="ARCADE CHAOS",title="",subtitle="",emoji=null,coin=false}){els.chaosKicker.textContent=kicker;els.chaosTitle.textContent=title;els.chaosSubtitle.textContent=subtitle||"";els.coinStage.classList.toggle("hidden",!coin);els.chaosEmoji.classList.toggle("hidden",!emoji);els.chaosEmoji.textContent=emoji||"";els.chaosModal.classList.remove("hidden");}
   function closeChaos(){els.chaosModal.classList.add("hidden");els.arcadeCoin.className="arcade-coin";}
   function animateCoin(result){
-    closeNightDrawer();showChaos({kicker:"COIN FLIP",title:"FLIPPING…",subtitle:"Fate is in the air.",coin:true});void els.arcadeCoin.offsetWidth;els.arcadeCoin.classList.add(result==="HEADS"?"flip-heads":"flip-tails");window.ArcadeAudio.play("reel",{volume:.5});setTimeout(()=>{els.chaosTitle.textContent=result;els.chaosSubtitle.textContent=result==="HEADS"?"Heads takes it.":"Tails takes it.";window.ArcadeAudio.play("winner",{volume:.55});},state.reducedMotion?500:2400);
+    closeNightDrawer();
+    showChaos({kicker:"COIN FLIP",title:"FLIPPING…",subtitle:"",coin:true});
+    els.arcadeCoin.className="arcade-coin";
+    void els.arcadeCoin.offsetWidth;
+    const cls=result==="HEADS"?"flip-heads":"flip-tails";
+    els.arcadeCoin.classList.add(cls);
+    window.ArcadeAudio.play("reel",{volume:.5});
+    const finish=()=>{els.chaosTitle.textContent=result;els.chaosSubtitle.textContent=result==="HEADS"?"HEADS WINS":"TAILS WINS";window.ArcadeAudio.play("winner",{volume:.55});};
+    if(state.reducedMotion)setTimeout(finish,420);else els.arcadeCoin.addEventListener("animationend",finish,{once:true});
   }
+
+  function renderServicePlayers(){
+    els.servicePlayerList.innerHTML=state.players.map(name=>`<button type="button" class="service-player ${serviceTarget===name?"armed":""}" data-service-player="${escapeHtml(name)}"><span>${playerEmoji(name)}</span><strong>${escapeHtml(name)}</strong></button>`).join("")||`<p class="empty-dashboard">Set up players first.</p>`;
+  }
+  function openServicePanel(){renderServicePlayers();els.servicePanel.classList.remove("hidden");}
+  function closeServicePanel(){els.servicePanel.classList.add("hidden");}
   function runRandomPlayer(){
-    if(state.players.length<2){showToast("Set up players first.");return;}const items=playerItems();const winner=pickWinner(items);closeNightDrawer();window.ArcadeModes.setPool(items,"logo");if(cloudReady)window.ArcadeCloud.broadcastLiveEvent({type:"playerRoll",mode:state.mode,winnerName:winner.name,winnerEmoji:winner.emoji,candidates:items.map(({id,name,emoji,accent})=>({id,name,emoji,accent}))},cloudRoomCode).catch(()=>{});window.ArcadeModes.spin(state.mode,items,"logo",winner,state.reducedMotion,()=>{refreshPoolUI();els.extraResult.innerHTML=`<strong>${winner.emoji} ${escapeHtml(winner.name)}</strong><span>FATE HAS SPOKEN</span>`;showChaos({kicker:"PLAYER SELECTED",title:winner.name,subtitle:"Fate has spoken.",emoji:winner.emoji});});
+    if(state.players.length<2){showToast("Set up players first.");return;}
+    const items=playerItems();
+    let winner=serviceTarget?items.find(item=>item.name===serviceTarget):null;
+    if(!winner)winner=pickWinner(items);
+    serviceTarget=null;
+    closeNightDrawer();
+    window.ArcadeModes.setPool(items,"logo");
+    // Player clients receive the same event shape for every player roll.
+    if(cloudReady)window.ArcadeCloud.broadcastLiveEvent({type:"playerRoll",mode:state.mode,winnerName:winner.name,winnerEmoji:winner.emoji,candidates:items.map(({id,name,emoji,accent})=>({id,name,emoji,accent}))},cloudRoomCode).catch(()=>{});
+    window.ArcadeModes.spin(state.mode,items,"logo",winner,state.reducedMotion,()=>{refreshPoolUI();els.extraResult.innerHTML=`<strong>${winner.emoji} ${escapeHtml(winner.name)}</strong><span>FATE HAS SPOKEN</span>`;showChaos({kicker:"PLAYER SELECTED",title:winner.name,subtitle:"Fate has spoken.",emoji:winner.emoji});});
   }
 
   async function endNight(){
@@ -360,7 +384,11 @@
     els.randomizeTeamsBtn.addEventListener("click",()=>{const game=getGame(state.acceptedGameId);if(game)randomizeTeams(game,els.teamCountSelect.value,true)});els.teamCountSelect.addEventListener("change",e=>{const game=getGame(state.acceptedGameId);if(game)randomizeTeams(game,e.target.value,true)});
     els.scoreModeSelect.addEventListener("change",()=>{const round=getActiveRound();if(round){round.scoreMode=els.scoreModeSelect.value;round.scores=[];round.winners=[];round.scoreless=true;save()}renderScorekeeper(getGame(state.acceptedGameId))});els.scoreDirectionSelect.addEventListener("change",()=>{const round=getActiveRound();if(round){round.scoreDirection=els.scoreDirectionSelect.value;save()}});els.saveScoreBtn.addEventListener("click",()=>saveScoreResult(false));els.markScorelessBtn.addEventListener("click",()=>saveScoreResult(true));
     els.drinkPlayerList.addEventListener("click",async e=>{const button=e.target.closest("[data-drink-index]");if(!button)return;const name=state.players[Number(button.dataset.drinkIndex)];if(!name)return;const key=playerKey(name);const next=Math.max(0,(Number(state.drinkCounts[key])||0)+Number(button.dataset.drinkDelta||0));state.drinkCounts[key]=next;window.ArcadeStorage.save(state);const member=memberForName(name);if(cloudReady&&member)await window.ArcadeCloud.setMemberDrinks(member[0],next,cloudRoomCode).catch(()=>{});renderNightDashboard()});
-    els.randomPlayerBtn.addEventListener("click",runRandomPlayer);els.coinFlipBtn.addEventListener("click",()=>{const result=window.ArcadeSession.coinFlip();if(cloudReady)window.ArcadeCloud.broadcastLiveEvent({type:"coinFlip",result},cloudRoomCode).catch(()=>{});els.extraResult.innerHTML=`<strong>🪙 ${result}</strong><span>COIN FLIP</span>`;animateCoin(result)});els.modifierBtn.addEventListener("click",()=>{const modifier=window.ArcadeSession.randomModifier();state.currentModifier=modifier;save();els.extraResult.innerHTML=`<strong>⚡ HOUSE MODIFIER</strong><span>${escapeHtml(modifier)}</span>`;if(cloudReady)window.ArcadeCloud.broadcastLiveEvent({type:"modifier",text:modifier},cloudRoomCode).catch(()=>{});showToast("Modifier broadcast to everyone.")});
+    els.randomPlayerBtn.addEventListener("click",runRandomPlayer);
+    els.serviceCloseBtn.addEventListener("click",closeServicePanel);
+    els.serviceClearBtn.addEventListener("click",()=>{serviceTarget=null;closeServicePanel();});
+    els.servicePlayerList.addEventListener("click",event=>{const button=event.target.closest("[data-service-player]");if(!button)return;serviceTarget=button.dataset.servicePlayer;closeServicePanel();});
+    els.coinFlipBtn.addEventListener("click",()=>{const result=window.ArcadeSession.coinFlip();if(cloudReady)window.ArcadeCloud.broadcastLiveEvent({type:"coinFlip",result},cloudRoomCode).catch(()=>{});els.extraResult.innerHTML=`<strong>🪙 ${result}</strong><span>COIN FLIP</span>`;animateCoin(result)});els.modifierBtn.addEventListener("click",()=>{const modifier=window.ArcadeSession.randomModifier();state.currentModifier=modifier;save();els.extraResult.innerHTML=`<strong>⚡ HOUSE MODIFIER</strong><span>${escapeHtml(modifier)}</span>`;if(cloudReady)window.ArcadeCloud.broadcastLiveEvent({type:"modifier",text:modifier},cloudRoomCode).catch(()=>{});showToast("Modifier broadcast to everyone.")});
     els.endNightBtn.addEventListener("click",endNight);els.startNewNightBtn.addEventListener("click",startNewNight);
     els.adminArchiveList.addEventListener("click",async e=>{
       const nightButton=e.target.closest("[data-delete-night]");
@@ -397,7 +425,11 @@
       }
       refreshPoolUI();renderRules(null);renderNightDashboard();showToast("Current night reset. Archive preserved.");
     });
-    window.addEventListener("keydown",e=>{if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||""))return;if(e.code==="Space"){e.preventDefault();spin()}else if(e.key.toLowerCase()==="p")openPlayerSetup(false);else if(e.key.toLowerCase()==="n")openNightDrawer();else if(e.key.toLowerCase()==="m")openModeMenu();else if(e.key.toLowerCase()==="g")openGameDrawer();else if(e.key==="Escape"){closeGameDrawer();closeNightDrawer();els.settingsModal.classList.add("hidden");closeChaos();closePlayerSetup()}});
+    window.addEventListener("keydown",e=>{
+      if(e.altKey&&e.shiftKey&&e.key.toLowerCase()==="p"){e.preventDefault();openServicePanel();return;}
+      if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||""))return;
+      if(e.code==="Space"){e.preventDefault();spin()}else if(e.key.toLowerCase()==="p")openPlayerSetup(false);else if(e.key.toLowerCase()==="n")openNightDrawer();else if(e.key.toLowerCase()==="m")openModeMenu();else if(e.key.toLowerCase()==="g")openGameDrawer();else if(e.key==="Escape"){closeGameDrawer();closeNightDrawer();closeServicePanel();els.settingsModal.classList.add("hidden");closeChaos();closePlayerSetup()}
+    });
     window.addEventListener("resize",()=>window.ArcadeModes.setPool(getPool(),state.display));
     window.addEventListener("qrcode-ready",()=>{if(cloudReady)renderRoomShare();});
   }
