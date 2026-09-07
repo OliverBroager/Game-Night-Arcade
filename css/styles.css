@@ -1216,3 +1216,198 @@ body {
 .extra-result { border: 2px dashed #3d4350 !important; background: #090b10 !important; }
 .counter-btn { border-radius: 2px !important; box-shadow: 2px 2px 0 #000; }
 .archive-night { border: 2px solid #303541 !important; }
+
+/* =========================================================
+   COIN DROP + READABILITY UPDATE
+   ========================================================= */
+:root {
+  --ui-xs: clamp(10px, .66vw, 14px);
+  --ui-sm: clamp(12px, .78vw, 16px);
+  --ui-md: clamp(14px, .92vw, 18px);
+  --ui-lg: clamp(18px, 1.25vw, 24px);
+}
+body { font-size: var(--ui-md); }
+.brand-kicker, .eyebrow { font-size: var(--ui-xs) !important; }
+.chip-btn, .secondary-btn, .primary-btn, .danger-btn, .toggle-row, .status-pill,
+.game-list-item, .drawer-tools, .footer-bar, .mode-card small, .mode-tag,
+.team-card, .scorekeeper, .team-randomizer, .match-log-row, .leaderboard-row,
+.room-roster-row, .archive-night, .extra-result { font-size: var(--ui-sm) !important; }
+.toggle-row small, .game-list-item small, .team-randomizer-header p, .scorekeeper-header p,
+.score-entry-name small, .leader-name small, .match-log-row small, .match-log-row em,
+.night-section-title > small, .room-roster-row small, .archive-night summary small {
+  font-size: var(--ui-xs) !important;
+}
+.rule-list li { font-size: var(--ui-sm) !important; line-height: 1.42 !important; }
+.rule-group-title { font-size: var(--ui-sm) !important; }
+.chosen-game-card h2, .team-randomizer-header h3, .scorekeeper-header h3,
+.night-section-title h3 { font-size: var(--ui-lg) !important; }
+
+/* Redesigned wheel center: compact physical arcade button. */
+.wheel-spin-button {
+  width: 132px !important;
+  height: 132px !important;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  border: 8px solid #050608 !important;
+  background: radial-gradient(circle at 36% 30%, #ffef9b 0 7%, #ffd23f 8% 32%, #d58d12 33% 52%, #4c2d06 53% 67%, #111318 68%) !important;
+  box-shadow: 0 0 0 5px #343946, 0 0 0 8px #090a0e, 6px 7px 0 #000 !important;
+  color: #201704;
+  text-shadow: none !important;
+}
+.wheel-spin-button::after {
+  content: "";
+  position: absolute;
+  inset: 17px;
+  border: 3px dashed rgba(43,29,4,.48);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.wheel-spin-button strong {
+  position: relative;
+  z-index: 2;
+  font-family: Impact, "Arial Black", sans-serif;
+  font-size: clamp(24px, 1.75vw, 31px) !important;
+  letter-spacing: .06em;
+  transform: translateY(1px);
+}
+.wheel-spin-ring { position: absolute; inset: 7px; border: 2px solid rgba(255,255,255,.3); border-radius: 50%; pointer-events:none; }
+.wheel-spin-button:hover { transform: scale(1.035) !important; filter: brightness(1.05); }
+.spectator-wheel-hub {
+  width: 92px !important;
+  height: 92px !important;
+  border: 7px solid #08090c !important;
+  background: radial-gradient(circle at 38% 32%, #cfd4dc 0 8%, #626b78 9% 26%, #232832 27% 58%, #090b0f 59%) !important;
+  box-shadow: 0 0 0 4px #343945, 5px 6px 0 #000 !important;
+}
+
+/* Coin Drop selector */
+.coin-drop-machine { width: min(100%, 960px); display: grid; justify-items: center; gap: 12px; }
+.coin-drop-sign {
+  min-width: min(420px, 85%);
+  padding: 8px 18px;
+  border: 3px solid #060708;
+  background: var(--yellow);
+  color: #181204;
+  box-shadow: 5px 5px 0 #000;
+  text-align: center;
+}
+.coin-drop-sign span, .coin-drop-sign strong { display: block; }
+.coin-drop-sign span { font: 900 var(--ui-xs) "Courier New", monospace; letter-spacing: .18em; }
+.coin-drop-sign strong { font: 900 clamp(25px, 2.2vw, 38px) Impact, "Arial Black", sans-serif; letter-spacing: .09em; }
+.coin-drop-board {
+  position: relative;
+  width: min(850px, 94%);
+  height: clamp(390px, 50vw, 525px);
+  overflow: hidden;
+  border: 6px solid #050608;
+  outline: 3px solid #3a404d;
+  background: linear-gradient(180deg, #11151d, #090b10 75%);
+  box-shadow: inset 0 0 55px rgba(0,0,0,.8), 7px 8px 0 #000;
+}
+.coin-drop-board::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, transparent 0 8%, rgba(255,255,255,.016) 8.2% 8.5%);
+}
+.coin-drop-pegs { position: absolute; inset: 0 0 74px; }
+.coin-drop-peg {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%,-50%);
+  border: 3px solid #050608;
+  border-radius: 50%;
+  background: #dce1e9;
+  box-shadow: 2px 2px 0 #000, inset 2px 2px 0 #fff;
+}
+.coin-drop-coin {
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  top: 4%;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%,-50%);
+  border: 5px solid #7b5009;
+  border-radius: 50%;
+  background: #ffd23f;
+  color: #4c3108;
+  font-size: 19px;
+  font-weight: 1000;
+  box-shadow: inset 0 0 0 3px #ffeb91, 3px 4px 0 #000;
+  will-change: left, top, transform;
+}
+.coin-drop-slots {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0,1fr));
+  gap: 4px;
+  height: 76px;
+}
+.coin-drop-slot {
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  overflow: hidden;
+  border: 2px solid #353b48;
+  border-top: 5px solid var(--item-accent, var(--cyan));
+  background: #0b0d12;
+  transition: background 120ms, transform 120ms, filter 120ms;
+}
+.coin-drop-slot img { max-width: 46px; max-height: 46px; object-fit: contain; }
+.coin-drop-slot strong { max-width: 100%; overflow: hidden; font-size: var(--ui-xs); line-height: 1.05; text-align: center; overflow-wrap: anywhere; }
+.coin-drop-emoji { font-size: clamp(25px, 2vw, 36px); }
+.coin-drop-slot.winner {
+  border-color: var(--yellow);
+  background: #282006;
+  transform: translateY(-5px);
+  box-shadow: 0 0 0 2px #000, 0 0 24px rgba(255,210,63,.42);
+}
+.coin-drop-empty { grid-column: 1/-1; display:grid; place-items:center; border:2px dashed #3a404c; color:var(--muted); font-size:var(--ui-sm); }
+.coin-drop-button { min-width: min(330px, 82%); }
+body[data-mode="coinDrop"] .winner-wrap { --winner-a: var(--yellow); --winner-b: var(--cyan); }
+
+/* Admin modifier management */
+.modifier-admin-box {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 9px;
+  padding: 9px;
+  border: 2px solid #4b4318;
+  background: #171407;
+}
+.modifier-admin-box span, .modifier-admin-box strong { display:block; }
+.modifier-admin-box span { color:var(--yellow); font-size:var(--ui-xs); font-weight:900; letter-spacing:.1em; }
+.modifier-admin-box strong { margin-top:3px; font-size:var(--ui-sm); line-height:1.3; }
+.modifier-clear-btn { white-space: nowrap; }
+.modifier-clear-btn:disabled { opacity:.35; }
+
+@media (max-width: 720px) {
+  .coin-drop-board { width: 100%; height: 390px; }
+  .coin-drop-peg { width: 11px; height: 11px; border-width: 2px; }
+  .coin-drop-slots { height: 68px; gap: 2px; }
+  .coin-drop-slot img { max-width: 34px; max-height: 34px; }
+  .coin-drop-coin { width: 34px; height: 34px; }
+  .modifier-admin-box { grid-template-columns: 1fr; }
+}
+/* Additional responsive type normalization for admin drawers/forms. */
+.drawer-header h2, .modal h2, .mode-card strong, .chosen-game-card h2 { font-size: clamp(20px,1.45vw,28px) !important; }
+.toggle-row strong, .game-list-item strong, .score-entry-name strong, .leader-name strong,
+.dashboard-player-name, .team-card-heading h4, .room-roster-row strong, .match-log-row strong,
+.archive-match strong { font-size: var(--ui-sm) !important; }
+.team-count-field > span, .score-options label > span, .room-link-field span,
+.player-count-card > label, .number-stepper input, .score-entry-row input,
+.team-count-field select, .score-options select, .search-input { font-size: var(--ui-sm) !important; }
+.mode-card .mode-icon { font-size: clamp(30px,2.5vw,48px) !important; }

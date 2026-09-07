@@ -16,6 +16,7 @@
   let overlayWindow = null;
   let overlayKind = null;
   let liveResultReady = false;
+  let leaderboardMode = "wins";
   const PLAYER_AUDIO_KEY = "game-night-player-audio-v1";
   let playerAudio = { enabled: true, volume: 0.8 };
 
@@ -31,10 +32,11 @@
     "chaosModal","chaosKicker","chaosTitle","chaosSubtitle","chaosEmoji","coinStage","arcadeCoin","closeChaosBtn","liveNotice",
     "selectorViewport","gameQueueList","queueProgress","gameInfoPopover","closeGameInfoBtn","gameInfoLogo",
     "gameInfoStatus","gameInfoTitle","gameInfoMeta","gameInfoScore","gameInfoRules",
-    "openGameOverlayBtn","overlaySupportText","inlineSoundboardGrid","playerVolumeRange","playerVolumeValue","liveResultLogo"
+    "openGameOverlayBtn","overlaySupportText","inlineSoundboardGrid","playerVolumeRange","playerVolumeValue","liveResultLogo",
+    "leaderboardModes","leaderboardTitle"
   ].map(id => [id,$(id)]));
 
-  const modeNames = {wheel:"Prize Wheel",case:"Case Opening",slot:"Slot Machine",shuffle:"Arcade Shuffle"};
+  const modeNames = {wheel:"Prize Wheel",case:"Case Opening",slot:"Slot Machine",coinDrop:"Coin Drop",shuffle:"Coin Drop"};
 
   function escapeHtml(value){return String(value??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));}
   function key(name){return window.ArcadeSession.key(name);}
@@ -250,12 +252,14 @@
   }
 
   function renderCurrentGame(){
-    const ps=publicState();const current=game(ps.acceptedGameId);if(!current){els.liveGameName.textContent="Waiting for the first game…";els.liveGameLogo.classList.add("hidden");els.liveGameMeta.textContent="The admin controls the arcade. This page updates automatically.";els.playerRules.innerHTML="";els.playerTeams.innerHTML="";els.liveScore.innerHTML="";return;}
+    const ps=publicState();
+    els.liveModifier.innerHTML=`<span>HOUSE MODIFIER</span><strong>${escapeHtml(ps.currentModifier || "NONE ACTIVE")}</strong>`;
+    els.liveModifier.classList.toggle("active",Boolean(ps.currentModifier));
+    const current=game(ps.acceptedGameId);if(!current){els.liveGameName.textContent="Waiting for the first game…";els.liveGameLogo.classList.add("hidden");els.liveGameMeta.textContent="The admin controls the arcade. This page updates automatically.";els.playerRules.innerHTML="";els.playerTeams.innerHTML="";els.liveScore.innerHTML="";return;}
     els.liveGameName.textContent=current.name;els.liveGameLogo.src=current.logo;els.liveGameLogo.alt=`${current.name} logo`;els.liveGameLogo.classList.remove("hidden");els.liveGameMeta.textContent=[current.players,current.price,current.note].filter(Boolean).join(" · ");
     const teamResult=ps.teamResult;if(teamResult?.gameId===current.id&&teamResult.teams?.length){els.playerTeams.innerHTML=teamResult.teams.map((team,index)=>`<article class="team-card team-style-${index%8}"><div class="team-card-heading"><span class="team-number">${String(index+1).padStart(2,"0")}</span><div><small>TEAM</small><h4>${escapeHtml(team.name)}</h4></div><strong>${team.players.length}</strong></div><ol class="team-player-list">${team.players.map(name=>`<li class="${me()?.name===name?"is-me":""}"><span class="player-emoji-mini">${emojiForName(name)}</span>${escapeHtml(name)}</li>`).join("")}</ol></article>`).join("");}else els.playerTeams.innerHTML="";
     const round=(ps.matchHistory||[]).find(r=>r.id===ps.activeRoundId);if(round&&!round.scoreless){els.liveScore.innerHTML=`<span class="eyebrow">CURRENT RESULT</span><strong>${(round.winners||[]).map(name=>`${emojiForName(name)} ${escapeHtml(name)}`).join(" + ")} ${round.winners?.length===1?"LEADS / WINS":"WIN"}</strong><small>${(round.scores||[]).map(entry=>`${escapeHtml(entry.label)} ${entry.score}`).join(" · ")}</small>`;}else els.liveScore.innerHTML='<span class="eyebrow">MATCH RESULT</span><strong>Scoreless / not entered yet</strong>';
     const types=window.ARCADE_CONFIG.ruleTypes;els.playerRules.innerHTML=["red","yellow","green"].map(type=>`<section class="rule-group ${type}"><div class="rule-group-title"><span>${types[type].icon} ${types[type].label}</span></div><ul class="rule-list">${(current.rules?.[type]||[]).map(rule=>`<li>${escapeHtml(window.ArcadeSession.simpleRule(rule))}</li>`).join("")}</ul></section>`).join("");
-    if(ps.currentModifier){els.liveModifier.textContent=`⚡ ${ps.currentModifier}`;els.liveModifier.classList.remove("hidden")}else els.liveModifier.classList.add("hidden");
   }
 
   function renderMyCard(){const member=me();if(!member)return;els.myEmoji.textContent=member.emoji||"🎮";els.myName.textContent=member.name;els.myDrinkCount.textContent=Math.max(0,Number(member.drinks)||0);const team=publicState().teamResult?.teams?.find(team=>team.players?.includes(member.name));els.myTeam.textContent=team?team.name:"No team assigned yet";const ended=roomData?.meta?.status==="ended"||publicState().nightEnded;els.myDrinkMinus.disabled=ended;els.myDrinkPlus.disabled=ended;}
@@ -286,9 +290,14 @@
   function closeGameOverlay(){if(overlayIsOpen())try{overlayWindow.close();}catch(_){}overlayWindow=null;overlayKind=null;updateOverlayButton();}
 
   function renderRankings(){
-    const ps=publicState();const players=ps.players||Object.values(members()).map(m=>m.name);const board=window.ArcadeSession.leaderboard(players,ps.matchHistory||[],drinksMap());
-    els.playerLeaderboard.innerHTML=board.map((row,index)=>`<div class="leaderboard-row ${index===0&&row.wins>0?"leader":""}"><span class="leader-rank">${index+1}</span><span class="dashboard-player-emoji">${emojiForName(row.name)}</span><span class="leader-name"><strong>${escapeHtml(row.name)}</strong><small>${row.scoredGames} scored · ${row.games} played</small></span><strong class="wins-badge">${row.wins}W</strong></div>`).join("");
-    const drinks=[...board].sort((a,b)=>b.drinks-a.drinks||a.name.localeCompare(b.name));els.drinkLeaderboard.innerHTML=drinks.map((row,index)=>`<div class="leaderboard-row"><span class="leader-rank">${index+1}</span><span class="dashboard-player-emoji">${emojiForName(row.name)}</span><span class="leader-name"><strong>${escapeHtml(row.name)}</strong><small>Tonight</small></span><strong class="drink-badge">${row.drinks}</strong></div>`).join("");
+    const ps=publicState();const players=ps.players||Object.values(members()).map(m=>m.name);const base=window.ArcadeSession.leaderboard(players,ps.matchHistory||[],drinksMap());
+    let rows=[...base], title="Most wins", badge=row=>`${row.wins}W`, detail=row=>`${row.scoredGames} scored · ${row.games} played`;
+    if(leaderboardMode==="drinks"){rows.sort((a,b)=>b.drinks-a.drinks||b.wins-a.wins||a.name.localeCompare(b.name));title="Most drinks";badge=row=>`${row.drinks}`;detail=row=>`${row.wins} wins · ${row.games} games`;}
+    else if(leaderboardMode==="games"){rows.sort((a,b)=>b.games-a.games||b.wins-a.wins||a.name.localeCompare(b.name));title="Games played";badge=row=>`${row.games}`;detail=row=>`${row.wins} wins · ${row.scoredGames} scored`;}
+    els.leaderboardTitle.textContent=title;
+    els.leaderboardModes.querySelectorAll("[data-leaderboard-mode]").forEach(button=>button.classList.toggle("active",button.dataset.leaderboardMode===leaderboardMode));
+    els.playerLeaderboard.innerHTML=rows.map((row,index)=>`<div class="leaderboard-row ${index===0?"leader":""}"><span class="leader-rank">${index+1}</span><span class="dashboard-player-emoji">${emojiForName(row.name)}</span><span class="leader-name"><strong>${escapeHtml(row.name)}</strong><small>${detail(row)}</small></span><strong class="wins-badge">${badge(row)}</strong></div>`).join("")||'<p class="empty-dashboard">No players yet.</p>';
+    els.drinkLeaderboard.innerHTML="";
   }
 
   function renderHistory(){
@@ -308,14 +317,14 @@
   }
   function renderAll(){if(!memberId||!me())return;renderCurrentGame();renderMyCard();renderGameQueue();renderRankings();renderHistory();renderPlayers();renderEnded();renderSoundboard();renderOverlay();updateOverlayButton();}
 
-  function setLiveMode(mode){document.body.dataset.mode=mode;document.querySelectorAll("#liveAnimationModal .mode-layer").forEach(layer=>layer.classList.remove("active"));$(`${mode}Mode`)?.classList.add("active");els.selectorViewport.className=`selector-viewport mode-${mode} spectator-selector`;}
+  function setLiveMode(mode){const normalized=mode==="shuffle"?"coinDrop":mode;document.body.dataset.mode=normalized;document.querySelectorAll("#liveAnimationModal .mode-layer").forEach(layer=>layer.classList.remove("active"));$(`${normalized}Mode`)?.classList.add("active");els.selectorViewport.className=`selector-viewport mode-${normalized} spectator-selector`;}
   function showLiveResult({emoji="",logo="",title,subtitle}){liveResultReady=true;els.liveResultEmoji.textContent=emoji;els.liveResultEmoji.classList.toggle("hidden",!emoji);if(logo){els.liveResultLogo.src=logo;els.liveResultLogo.alt=`${title} logo`;els.liveResultLogo.classList.remove("hidden");}else els.liveResultLogo.classList.add("hidden");els.liveResultTitle.textContent=title;els.liveResultSubtitle.textContent=subtitle||"";els.liveAnimationResult.classList.remove("hidden");window.ArcadeAudio.play("winner",{volume:.7});}
-  function runMachineEvent(event){let pool=[];let winner=null;let title="The machine is rolling…";if(event.type==="gameRoll"){pool=(event.candidateIds||[]).map(game).filter(Boolean);winner=game(event.winnerId);title=`${modeNames[event.mode]||"Arcade"} is choosing the game…`;}else if(event.type==="playerRoll"){pool=(event.candidates||[]).map(item=>({...item}));winner=pool.find(item=>item.name===event.winnerName)||{id:"winner",name:event.winnerName,emoji:event.winnerEmoji,accent:"#ffd84c"};title=`${modeNames[event.mode]||"Arcade"} is choosing a player…`;}if(!pool.length||!winner)return;liveResultReady=false;els.liveAnimationHeading.textContent=title;els.liveAnimationResult.classList.add("hidden");els.liveAnimationModal.classList.remove("hidden");setLiveMode(event.mode||"wheel");window.ArcadeModes.setPool(pool,"logo");const reduce=window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;window.ArcadeModes.spin(event.mode||"wheel",pool,"logo",winner,Boolean(reduce),()=>showLiveResult({emoji:event.type==="playerRoll"?winner.emoji:"",logo:event.type==="gameRoll"?winner.logo:"",title:winner.name,subtitle:event.type==="playerRoll"?"PLAYER SELECTED":"GAME SELECTED"}));}
+  function runMachineEvent(event){let pool=[];let winner=null;let title="The machine is rolling…";if(event.type==="gameRoll"){pool=(event.candidateIds||[]).map(game).filter(Boolean);winner=game(event.winnerId);title=`${modeNames[event.mode]||"Arcade"} is choosing the game…`;}else if(event.type==="playerRoll"){pool=(event.candidates||[]).map(item=>({...item}));winner=pool.find(item=>item.name===event.winnerName)||{id:"winner",name:event.winnerName,emoji:event.winnerEmoji,accent:"#ffd84c"};title=`${modeNames[event.mode]||"Arcade"} is choosing a player…`;}if(!pool.length||!winner)return;liveResultReady=false;els.liveAnimationHeading.textContent=title;els.liveAnimationResult.classList.add("hidden");els.liveAnimationModal.classList.remove("hidden");const liveMode=event.mode==="shuffle"?"coinDrop":(event.mode||"wheel");setLiveMode(liveMode);window.ArcadeModes.setPool(pool,"logo");const reduce=window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;window.ArcadeModes.spin(liveMode,pool,"logo",winner,Boolean(reduce),()=>showLiveResult({emoji:event.type==="playerRoll"?winner.emoji:"",logo:event.type==="gameRoll"?winner.logo:"",title:winner.name,subtitle:event.type==="playerRoll"?"PLAYER SELECTED":"GAME SELECTED"}));}
 
 
   function animateCoin(result){els.chaosKicker.textContent="LIVE COIN FLIP";els.chaosTitle.textContent="FLIPPING…";els.chaosSubtitle.textContent="";els.chaosEmoji.classList.add("hidden");els.coinStage.classList.remove("hidden");els.chaosModal.classList.remove("hidden");els.arcadeCoin.className="arcade-coin";void els.arcadeCoin.offsetWidth;els.arcadeCoin.classList.add(result==="HEADS"?"flip-heads":"flip-tails");const finish=()=>{els.chaosTitle.textContent=result;els.chaosSubtitle.textContent=result==="HEADS"?"HEADS WINS":"TAILS WINS";window.ArcadeAudio.play("winner",{volume:.55});};if(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches)setTimeout(finish,420);else els.arcadeCoin.addEventListener("animationend",finish,{once:true});}
 
-  function processLiveEvent(event){if(!event)return;const at=Number(event.at)||0;if(firstSnapshot){lastLiveAt=at;return;}if(at<=lastLiveAt)return;lastLiveAt=at;if(event.type==="gameRoll"){showNotice(`🎡 ${modeNames[event.mode]||"Arcade"} is rolling a game!`,5000);runMachineEvent(event);}else if(event.type==="playerRoll"){showNotice(`🎯 ${modeNames[event.mode]||"Arcade"} is choosing a player!`,5000);runMachineEvent(event);}else if(event.type==="coinFlip"){showNotice("🪙 Live coin flip!",3000);animateCoin(event.result);}else if(event.type==="modifier"){showNotice(`⚡ ${escapeHtml(event.text)}`,6000);}else if(event.type==="gameAccepted"){const g=game(event.gameId);showNotice(`🎮 ${g?.name||"Game"} selected!`,4000);}else if(event.type==="score"){showNotice(event.scoreless?"📝 Game saved as scoreless.":`🏆 ${(event.winners||[]).join(" + ")} wins!`,5000);}else if(event.type==="nightEnded"){showNotice("🏁 Game night finished — final results are in!",7000);}}
+  function processLiveEvent(event){if(!event)return;const at=Number(event.at)||0;if(firstSnapshot){lastLiveAt=at;return;}if(at<=lastLiveAt)return;lastLiveAt=at;if(event.type==="gameRoll"){showNotice(`🎡 ${modeNames[event.mode]||"Arcade"} is rolling a game!`,5000);runMachineEvent(event);}else if(event.type==="playerRoll"){showNotice(`🎯 ${modeNames[event.mode]||"Arcade"} is choosing a player!`,5000);runMachineEvent(event);}else if(event.type==="coinFlip"){showNotice("🪙 Live coin flip!",3000);animateCoin(event.result);}else if(event.type==="modifier"){showNotice(`⚡ ${escapeHtml(event.text)}`,6000);}else if(event.type==="modifierCleared"){showNotice("⚡ House modifier cleared.",3500);}else if(event.type==="gameAccepted"){const g=game(event.gameId);showNotice(`🎮 ${g?.name||"Game"} selected!`,4000);}else if(event.type==="score"){showNotice(event.scoreless?"📝 Game saved as scoreless.":`🏆 ${(event.winners||[]).join(" + ")} wins!`,5000);}else if(event.type==="nightEnded"){showNotice("🏁 Game night finished — final results are in!",7000);}}
 
   function processSounds(soundEvents={}){const current=new Map(Object.entries(soundEvents).map(([uid,event])=>[uid,Number(event?.at)||0]));if(firstSnapshot){current.forEach((at,uid)=>lastSoundSeen.set(uid,at));return;}Object.entries(soundEvents).forEach(([uid,event])=>{const at=Number(event?.at)||0;if(at<=(lastSoundSeen.get(uid)||0))return;lastSoundSeen.set(uid,at);const sound=(window.ARCADE_SOUNDBOARD||[]).find(item=>item.id===event.soundId);const sender=members()[event.memberId];if(sound){window.ArcadeAudio.playFile(sound.file,{volume:.9}).then(ok=>{if(!ok)showNotice(`🔇 Tap “Enable sounds” so live clips can play.`,5000)});showNotice(`${sender?.emoji||"🔊"} ${escapeHtml(sender?.name||"Player")} played ${sound.name}`,3500);}});}
 
@@ -335,6 +344,7 @@
     els.openSoundboardBtn.addEventListener("click",()=>{renderSoundboard();els.soundboardModal.classList.remove("hidden")});els.closeSoundboardBtn.addEventListener("click",()=>els.soundboardModal.classList.add("hidden"));
     const soundClick=e=>{const button=e.target.closest("[data-sound-id]");if(button&&!button.disabled)playSound(button.dataset.soundId)};els.soundboardGrid.addEventListener("click",soundClick);els.inlineSoundboardGrid.addEventListener("click",soundClick);
     document.querySelectorAll(".player-tab").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll(".player-tab").forEach(b=>b.classList.toggle("active",b===button));document.querySelectorAll(".player-tab-panel").forEach(panel=>panel.classList.remove("active"));$(`tab${button.dataset.tab[0].toUpperCase()}${button.dataset.tab.slice(1)}`).classList.add("active")}));
+    els.leaderboardModes.addEventListener("click",event=>{const button=event.target.closest("[data-leaderboard-mode]");if(!button)return;leaderboardMode=button.dataset.leaderboardMode;renderRankings();});
 
     // Game queue info: a real mouse hover always opens the card.
     // Do not depend on CSS `(hover: hover)` because hybrid laptops/tablets can

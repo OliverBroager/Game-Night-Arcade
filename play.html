@@ -56,7 +56,7 @@
             <img id="liveGameLogo" class="live-game-logo hidden" alt="" />
           </div>
 
-          <div id="liveModifier" class="live-modifier hidden"></div>
+          <div id="liveModifier" class="live-modifier modifier-field"><span>HOUSE MODIFIER</span><strong>NONE ACTIVE</strong></div>
 
           <div class="current-game-status-grid">
             <section class="current-status-block">
@@ -134,9 +134,16 @@
 
         <section class="mini-leaderboard panel arcade-panel">
           <div class="cabinet-label yellow">HIGH SCORE</div>
-          <div class="mini-leaderboard-head"><span class="eyebrow">LEADERBOARD</span><h2>Most wins</h2></div>
+          <div class="mini-leaderboard-head">
+            <div><span class="eyebrow">LEADERBOARD</span><h2 id="leaderboardTitle">Most wins</h2></div>
+            <div id="leaderboardModes" class="leaderboard-modes" role="group" aria-label="Leaderboard type">
+              <button class="leaderboard-mode active" data-leaderboard-mode="wins" type="button">WINS</button>
+              <button class="leaderboard-mode" data-leaderboard-mode="drinks" type="button">DRINKS</button>
+              <button class="leaderboard-mode" data-leaderboard-mode="games" type="button">GAMES</button>
+            </div>
+          </div>
           <div id="playerLeaderboard" class="leaderboard-list compact-board"></div>
-          <div id="drinkLeaderboard" class="leaderboard-list hidden"></div>
+          <div id="drinkLeaderboard" class="leaderboard-list hidden" aria-hidden="true"></div>
         </section>
       </aside>
     </div>
@@ -189,10 +196,10 @@
   <div id="liveAnimationModal" class="live-animation-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="liveAnimationHeading">
     <div class="live-animation-top"><span class="eyebrow">LIVE ROLL</span><h2 id="liveAnimationHeading">The machine is rolling…</h2></div>
     <div id="selectorViewport" class="selector-viewport mode-wheel spectator-selector">
-      <div id="wheelMode" class="mode-layer active"><div class="wheel-wrap"><div class="wheel-pointer"></div><canvas id="wheelCanvas" width="900" height="900"></canvas><div class="wheel-hub spectator-hub"><span class="wheel-hub-small">LIVE</span><strong>ROLL</strong></div></div></div>
+      <div id="wheelMode" class="mode-layer active"><div class="wheel-wrap"><div class="wheel-pointer"></div><canvas id="wheelCanvas" width="900" height="900"></canvas><div class="wheel-hub spectator-hub spectator-wheel-hub" aria-hidden="true"></div></div></div>
       <div id="caseMode" class="mode-layer"><div class="case-machine"><div class="case-header-lights"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="case-window"><div class="case-marker"></div><div id="caseTrack" class="case-track"></div></div></div></div>
       <div id="slotMode" class="mode-layer"><div class="slot-machine"><div class="slot-sign">LUCKY PLAYER 777</div><div class="slot-reels"><div class="slot-reel"><div class="slot-strip" data-reel="0"></div></div><div class="slot-reel main"><div class="slot-strip" data-reel="1"></div></div><div class="slot-reel"><div class="slot-strip" data-reel="2"></div></div></div><button class="slot-lever spectator-lever" type="button" tabindex="-1"><span></span><strong>LIVE</strong></button></div></div>
-      <div id="shuffleMode" class="mode-layer"><div class="shuffle-machine"><div id="shuffleGrid" class="shuffle-grid"></div></div></div>
+      <div id="coinDropMode" class="mode-layer"><div class="coin-drop-machine spectator-coin-drop"><div class="coin-drop-sign"><span>LIVE</span><strong>GAME DROP</strong></div><div id="coinDropBoard" class="coin-drop-board"><div id="coinDropPegs" class="coin-drop-pegs" aria-hidden="true"></div><div id="coinDropCoin" class="coin-drop-coin" aria-hidden="true">★</div><div id="coinDropSlots" class="coin-drop-slots"></div></div></div></div>
     </div>
     <div id="liveAnimationResult" class="live-animation-result hidden">
       <div class="live-winner-card">

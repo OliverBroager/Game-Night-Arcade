@@ -2,7 +2,10 @@ window.ArcadeModes = (() => {
   const canvas = document.getElementById("wheelCanvas");
   const ctx = canvas.getContext("2d");
   const caseTrack = document.getElementById("caseTrack");
-  const shuffleGrid = document.getElementById("shuffleGrid");
+  const coinDropBoard = document.getElementById("coinDropBoard");
+  const coinDropPegs = document.getElementById("coinDropPegs");
+  const coinDropCoin = document.getElementById("coinDropCoin");
+  const coinDropSlots = document.getElementById("coinDropSlots");
   const slotStrips = [...document.querySelectorAll(".slot-strip")];
   const slotLever = document.querySelector(".slot-lever");
 
@@ -32,7 +35,7 @@ window.ArcadeModes = (() => {
     drawWheel(pool, display);
     buildCasePreview(pool, display);
     buildSlotPreview(pool, display);
-    buildShufflePreview(pool, display);
+    buildCoinDropPreview(pool, display);
   }
 
   function fitText(text, max, start = 24, min = 10) {
@@ -199,16 +202,54 @@ window.ArcadeModes = (() => {
     });
   }
 
-  function buildShufflePreview(pool, display) {
+  function buildCoinDropPegs() {
+    if (!coinDropPegs) return;
+    const rows = 8, cols = 9;
+    coinDropPegs.innerHTML = Array.from({ length: rows * cols }, (_, index) => {
+      const row = Math.floor(index / cols), col = index % cols;
+      const left = 7 + col * 10.7 + (row % 2 ? 5.5 : 0);
+      const top = 12 + row * 9.4;
+      return `<span class="coin-drop-peg" style="left:${left}%;top:${top}%"></span>`;
+    }).join("");
+  }
+
+  function coinDropSlotMarkup(game, display, index) {
+    const visual = display === "logo"
+      ? (game.emoji ? `<span class="coin-drop-emoji">${game.emoji}</span>` : `<img src="${game.logo}" alt="${escapeHtml(game.name)} logo">`)
+      : `<strong>${escapeHtml(game.name)}</strong>`;
+    return `<div class="coin-drop-slot" data-drop-slot="${index}" style="--item-accent:${game.accent || "#5cf5ff"}">${visual}</div>`;
+  }
+
+  function makeCoinDropCandidates(pool, winner = null, count = 7) {
+    if (!pool.length) return { items: [], targetIndex: 0 };
+    const targetIndex = winner ? Math.floor(Math.random() * count) : -1;
+    const others = winner ? pool.filter(item => item.id !== winner.id) : [...pool];
+    const shuffled = [...others].sort(() => Math.random() - .5);
+    const items = [];
+    for (let i = 0; i < count; i++) {
+      if (winner && i === targetIndex) items.push(winner);
+      else items.push(shuffled.shift() || randomGame(pool));
+    }
+    return { items, targetIndex };
+  }
+
+  function renderCoinDropSlots(items, display) {
+    if (!coinDropSlots) return;
+    coinDropSlots.innerHTML = items.map((game, index) => coinDropSlotMarkup(game, display, index)).join("");
+  }
+
+  function buildCoinDropPreview(pool, display) {
+    if (!coinDropBoard || !coinDropSlots || !coinDropCoin) return;
+    buildCoinDropPegs();
+    coinDropCoin.classList.remove("dropping");
+    coinDropCoin.style.left = "50%";
+    coinDropCoin.style.top = "4%";
+    coinDropCoin.style.transform = "translate(-50%,-50%) rotate(0deg)";
     if (!pool.length) {
-      shuffleGrid.innerHTML = `<div class="shuffle-tile"><strong>NO GAMES ACTIVE</strong></div>`;
+      coinDropSlots.innerHTML = `<div class="coin-drop-empty">NO GAMES ACTIVE</div>`;
       return;
     }
-    const count = 12;
-    shuffleGrid.innerHTML = Array.from({ length: count }, (_, i) => {
-      const game = pool[i % pool.length];
-      return gameItemMarkup(game, display, "shuffle-tile");
-    }).join("");
+    renderCoinDropSlots(Array.from({ length: 7 }, (_, i) => pool[i % pool.length]), display);
   }
 
   function easeOutQuint(t) { return 1 - Math.pow(1 - t, 5); }
@@ -390,41 +431,57 @@ window.ArcadeModes = (() => {
     });
   }
 
-  function replaceShuffleTile(tile, game, display) {
-    tile.style.setProperty("--item-accent", game.accent || "#5cf5ff");
-    tile.innerHTML = display === "logo"
-      ? (game.emoji ? `<span class="selector-emoji" aria-label="${escapeHtml(game.name)}">${game.emoji}</span>` : `<img src="${game.logo}" alt="${escapeHtml(game.name)} logo">`)
-      : `<strong>${escapeHtml(game.name)}</strong>`;
-  }
+  function spinCoinDrop(pool, display, winner, duration, done) {
+    if (!coinDropBoard || !coinDropSlots || !coinDropCoin) { done(); return; }
+    buildCoinDropPegs();
+    const { items, targetIndex } = makeCoinDropCandidates(pool, winner, 7);
+    renderCoinDropSlots(items, display);
+    [...coinDropSlots.children].forEach(slot => slot.classList.remove("winner"));
 
-  function spinShuffle(pool, display, winner, duration, done) {
-    buildShufflePreview(pool, display);
-    const tiles = [...shuffleGrid.children];
-    const winnerTileIndex = tiles.length >= 8 ? 5 : 0;
-    const start = performance.now();
-    let lastPulse = 0;
+    coinDropCoin.classList.remove("dropping");
+    coinDropCoin.style.left = "50%";
+    coinDropCoin.style.top = "4%";
+    coinDropCoin.style.transform = "translate(-50%,-50%) rotate(0deg)";
+    void coinDropCoin.offsetWidth;
+    coinDropCoin.classList.add("dropping");
 
-    function pulse(now) {
-      const t = Math.min(1, (now - start) / duration);
-      const interval = 55 + Math.pow(t, 3) * 390;
-      if (now - lastPulse >= interval) {
-        tiles.forEach(tile => tile.classList.remove("hot"));
-        const index = t > .88 ? winnerTileIndex : Math.floor(Math.random() * tiles.length);
-        const game = t > .92 ? winner : randomGame(pool);
-        replaceShuffleTile(tiles[index], game, display);
-        tiles[index].classList.add("hot");
-        window.ArcadeAudio.play("tick", { volume: .32, rate: 1.35 - t * .45 });
-        lastPulse = now;
+    const boardRect = coinDropBoard.getBoundingClientRect();
+    const slot = coinDropSlots.children[targetIndex];
+    const slotRect = slot.getBoundingClientRect();
+    const startX = boardRect.width / 2;
+    const endX = slotRect.left - boardRect.left + slotRect.width / 2;
+    const startY = boardRect.height * .05;
+    const endY = slotRect.top - boardRect.top + Math.min(24, slotRect.height * .32);
+    const started = performance.now();
+    const rowOffsets = Array.from({ length: 10 }, (_, i) => (Math.random() - .5) * Math.max(10, 42 - i * 3));
+    let lastRow = -1;
+
+    function frame(now) {
+      const t = Math.min(1, (now - started) / Math.max(1, duration));
+      const eased = t * t * (3 - 2 * t);
+      const rowFloat = t * 8;
+      const row = Math.min(8, Math.floor(rowFloat));
+      const local = rowFloat - row;
+      const a = rowOffsets[Math.min(row, rowOffsets.length - 1)] || 0;
+      const b = rowOffsets[Math.min(row + 1, rowOffsets.length - 1)] || 0;
+      const bounce = a + (b - a) * local;
+      const x = startX + (endX - startX) * eased + bounce * (1 - eased);
+      const y = startY + (endY - startY) * t;
+      coinDropCoin.style.left = `${x}px`;
+      coinDropCoin.style.top = `${y}px`;
+      coinDropCoin.style.transform = `translate(-50%,-50%) rotate(${t * 1080}deg)`;
+      if (row !== lastRow && row < 8) {
+        window.ArcadeAudio.play("tick", { volume: .28, rate: 1.18 - t * .24 });
+        lastRow = row;
       }
-      if (t < 1) requestAnimationFrame(pulse);
+      if (t < 1) requestAnimationFrame(frame);
       else {
-        tiles.forEach(tile => tile.classList.remove("hot"));
-        replaceShuffleTile(tiles[winnerTileIndex], winner, display);
-        tiles[winnerTileIndex].classList.add("hot");
-        setTimeout(done, 300);
+        slot.classList.add("winner");
+        coinDropCoin.classList.remove("dropping");
+        setTimeout(done, 420);
       }
     }
-    requestAnimationFrame(pulse);
+    requestAnimationFrame(frame);
   }
 
   function spin(mode, pool, display, winner, reducedMotion, done) {
@@ -437,7 +494,7 @@ window.ArcadeModes = (() => {
 
     if (mode === "case") spinCase(pool, display, winner, base.caseMs * multiplier, complete);
     else if (mode === "slot") spinSlot(pool, display, winner, base.slotMs * multiplier, complete);
-    else if (mode === "shuffle") spinShuffle(pool, display, winner, base.shuffleMs * multiplier, complete);
+    else if (mode === "coinDrop") spinCoinDrop(pool, display, winner, base.coinDropMs * multiplier, complete);
     else spinWheel(pool, display, winner, base.wheelMs * multiplier, complete);
     return true;
   }

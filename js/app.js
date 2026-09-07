@@ -1,5 +1,6 @@
 (() => {
   let state = window.ArcadeStorage.load();
+  if (state.mode === "shuffle") state.mode = "coinDrop";
   let pendingWinner = null;
   let selectedModeInModal = state.mode;
   let playerSetupIsStartup = false;
@@ -31,7 +32,7 @@
     "scoreEntryList","saveScoreBtn","markScorelessBtn","openNightInlineBtn","ruleSections","winnerLogo",
     "winnerTitle","winnerKicker","winnerSubtitle","rerollBtn","acceptBtn","historyText","toast",
     "closeNightDrawerBtn","nightSummary","drinkPlayerList","leaderboardList","randomPlayerBtn","coinFlipBtn",
-    "modifierBtn","extraResult","matchHistoryList","adminArchiveList","endNightBtn","startNewNightBtn",
+    "modifierBtn","currentModifierAdmin","clearModifierBtn","extraResult","matchHistoryList","adminArchiveList","endNightBtn","startNewNightBtn",
     "playerCountInput","decreasePlayerCountBtn","increasePlayerCountBtn","playerNameList","playerSetupError",
     "savePlayersBtn","cancelPlayerSetupBtn","servicePanel","servicePlayerList","serviceCloseBtn","serviceClearBtn","roomCodeLarge","cloudStatusText","roomQr","playerJoinUrl",
     "copyPlayerLinkBtn","openPlayerViewBtn","roomRosterList","continueLocalBtn","closeChaosBtn","chaosKicker",
@@ -42,7 +43,7 @@
     wheel: { title: "Prize Wheel", icon: "🎡", kicker: "JACKPOT!" },
     case: { title: "Case Opening", icon: "📦", kicker: "RARE DROP!" },
     slot: { title: "Slot Machine", icon: "🎰", kicker: "JACKPOT 777!" },
-    shuffle: { title: "Arcade Shuffle", icon: "⚡", kicker: "LOCKED IN!" }
+    coinDrop: { title: "Coin Drop", icon: "🪙", kicker: "COIN DROP!" }
   };
   const playerAccents = ["#5cf5ff","#ff4ed8","#8b5cff","#ffd84c","#53f58c","#ff6b70","#ff8b3d","#78a5ff"];
 
@@ -279,6 +280,8 @@
     els.drinkPlayerList.innerHTML=state.players.map((name,index)=>`<div class="drink-player-row"><span class="dashboard-player-emoji">${playerEmoji(name)}</span><span class="dashboard-player-name">${escapeHtml(name)}</span><button class="counter-btn" data-drink-index="${index}" data-drink-delta="-1">−</button><strong>${Math.max(0,Number(state.drinkCounts[playerKey(name)])||0)}</strong><button class="counter-btn plus" data-drink-index="${index}" data-drink-delta="1">+</button></div>`).join("")||`<p class="empty-dashboard">Set up players first.</p>`;
     els.leaderboardList.innerHTML=board.map((row,index)=>`<div class="leaderboard-row ${index===0&&row.wins>0?"leader":""}"><span class="leader-rank">${index+1}</span><span class="dashboard-player-emoji">${playerEmoji(row.name)}</span><span class="leader-name"><strong>${escapeHtml(row.name)}</strong><small>${row.scoredGames} scored · ${row.games} played · ${row.drinks} drinks</small></span><strong class="wins-badge">${row.wins}W</strong></div>`).join("")||`<p class="empty-dashboard">No players yet.</p>`;
     els.matchHistoryList.innerHTML=[...state.matchHistory].reverse().slice(0,20).map(round=>{const game=getGame(round.gameId);if(!game)return"";const outcome=round.scoreless?"SCORELESS":`WIN: ${(round.winners||[]).map(n=>`${playerEmoji(n)} ${escapeHtml(n)}`).join(" + ")}`;const scores=(round.scores||[]).length?round.scores.map(e=>`${escapeHtml(e.label)} ${e.score}`).join(" · "):"No score entered";return`<article class="match-log-row ${round.scoreless?"scoreless":""}"><img src="${game.logo}" alt=""><span><strong>${escapeHtml(game.name)}</strong><small>${outcome}</small><em>${scores}</em></span></article>`}).join("")||`<p class="empty-dashboard">Accepted games appear here.</p>`;
+    els.currentModifierAdmin.textContent = state.currentModifier || "NONE ACTIVE";
+    els.clearModifierBtn.disabled = !state.currentModifier;
     renderAdminArchive();
     els.endNightBtn.classList.toggle("hidden",Boolean(state.nightEnded));els.startNewNightBtn.classList.toggle("hidden",!state.nightEnded);
   }
@@ -358,7 +361,7 @@
     if(!window.ArcadeCloud.configured()){els.cloudSetupModal.classList.remove("hidden");renderRoomShare();return false;}
     try{
       const boot=await window.ArcadeCloud.adminBootstrap(publicStateForCloud());cloudRoomCode=boot.roomCode;cloudRoomData=boot.room;cloudMeta=boot.room?.meta||{};cloudArchives=boot.room?.history||{};
-      if(boot.room?.publicState){const localPrefs={soundEnabled:state.soundEnabled,volume:state.volume,reducedMotion:state.reducedMotion};state={...window.ArcadeStorage.defaults(),...state,...boot.room.publicState,...localPrefs};window.ArcadeStorage.save(state);}cloudReady=true;
+      if(boot.room?.publicState){const localPrefs={soundEnabled:state.soundEnabled,volume:state.volume,reducedMotion:state.reducedMotion};state={...window.ArcadeStorage.defaults(),...state,...boot.room.publicState,...localPrefs};if(state.mode==="shuffle")state.mode="coinDrop";selectedModeInModal=state.mode;window.ArcadeStorage.save(state);}cloudReady=true;
       if(state.players.length)cloudMembers=await window.ArcadeCloud.syncRoster(state.players,cloudRoomCode);syncStateFromMembers(cloudMembers);save();renderAll();renderRoomShare();cloudUnsubscribe=await window.ArcadeCloud.subscribeRoom(cloudRoomCode,applyCloudRoom);showToast(`Room ${cloudRoomCode} is live.`);return true;
     }catch(error){console.error(error);els.cloudSetupModal.classList.remove("hidden");els.cloudStatusText.textContent="CONNECTION FAILED";return false;}
   }
@@ -375,7 +378,7 @@
     els.copyPlayerLinkBtn.addEventListener("click",async()=>{if(!cloudReady)return showToast("Configure Firebase first.");try{await navigator.clipboard.writeText(playerJoinLink());showToast("Player link copied.");}catch{els.playerJoinUrl.select();document.execCommand("copy");showToast("Player link copied.");}});
     document.querySelectorAll(".mode-card").forEach(card=>card.addEventListener("click",()=>{selectedModeInModal=card.dataset.mode;document.querySelectorAll(".mode-card").forEach(item=>item.classList.toggle("selected",item===card));window.ArcadeAudio.play("button",{volume:.35})}));
     els.enterArcadeBtn.addEventListener("click",()=>{state.mode=selectedModeInModal;save();updateModeUI();refreshPoolUI();els.modeModal.classList.add("hidden")});els.editPoolBtn.addEventListener("click",openGameDrawer);
-    [$("wheelSpinButton"),$("caseSpinButton"),$("slotSpinButton"),$("shuffleSpinButton")].forEach(button=>button.addEventListener("click",spin));els.acceptBtn.addEventListener("click",acceptWinner);els.rerollBtn.addEventListener("click",reroll);
+    [$("wheelSpinButton"),$("caseSpinButton"),$("slotSpinButton"),$("coinDropSpinButton")].filter(Boolean).forEach(button=>button.addEventListener("click",spin));els.acceptBtn.addEventListener("click",acceptWinner);els.rerollBtn.addEventListener("click",reroll);
     els.displayLogoBtn.addEventListener("click",()=>{state.display="logo";save();updateSettingsUI();refreshPoolUI()});els.displayNameBtn.addEventListener("click",()=>{state.display="name";save();updateSettingsUI();refreshPoolUI()});
     const setRemove=value=>{state.removeAfterAccept=Boolean(value);save();updateSettingsUI()};els.removeAfterAcceptToggle.addEventListener("change",e=>setRemove(e.target.checked));els.settingsRemoveToggle.addEventListener("change",e=>setRemove(e.target.checked));
     els.soundBtn.addEventListener("click",()=>{state.soundEnabled=!state.soundEnabled;window.ArcadeAudio.setEnabled(state.soundEnabled);save();updateSettingsUI()});els.soundToggle.addEventListener("change",e=>{state.soundEnabled=e.target.checked;window.ArcadeAudio.setEnabled(state.soundEnabled);save();updateSettingsUI()});els.volumeRange.addEventListener("input",e=>{state.volume=Number(e.target.value);window.ArcadeAudio.setVolume(state.volume);save();updateSettingsUI()});els.reducedMotionToggle.addEventListener("change",e=>{state.reducedMotion=e.target.checked;save();updateSettingsUI()});
@@ -388,7 +391,9 @@
     els.serviceCloseBtn.addEventListener("click",closeServicePanel);
     els.serviceClearBtn.addEventListener("click",()=>{serviceTarget=null;closeServicePanel();});
     els.servicePlayerList.addEventListener("click",event=>{const button=event.target.closest("[data-service-player]");if(!button)return;serviceTarget=button.dataset.servicePlayer;closeServicePanel();});
-    els.coinFlipBtn.addEventListener("click",()=>{const result=window.ArcadeSession.coinFlip();if(cloudReady)window.ArcadeCloud.broadcastLiveEvent({type:"coinFlip",result},cloudRoomCode).catch(()=>{});els.extraResult.innerHTML=`<strong>🪙 ${result}</strong><span>COIN FLIP</span>`;animateCoin(result)});els.modifierBtn.addEventListener("click",()=>{const modifier=window.ArcadeSession.randomModifier();state.currentModifier=modifier;save();els.extraResult.innerHTML=`<strong>⚡ HOUSE MODIFIER</strong><span>${escapeHtml(modifier)}</span>`;if(cloudReady)window.ArcadeCloud.broadcastLiveEvent({type:"modifier",text:modifier},cloudRoomCode).catch(()=>{});showToast("Modifier broadcast to everyone.")});
+    els.coinFlipBtn.addEventListener("click",()=>{const result=window.ArcadeSession.coinFlip();if(cloudReady)window.ArcadeCloud.broadcastLiveEvent({type:"coinFlip",result},cloudRoomCode).catch(()=>{});els.extraResult.innerHTML=`<strong>🪙 ${result}</strong><span>COIN FLIP</span>`;animateCoin(result)});
+    els.modifierBtn.addEventListener("click",()=>{const modifier=window.ArcadeSession.randomModifier();state.currentModifier=modifier;save();renderNightDashboard();els.extraResult.innerHTML=`<strong>⚡ HOUSE MODIFIER</strong><span>${escapeHtml(modifier)}</span>`;if(cloudReady)window.ArcadeCloud.broadcastLiveEvent({type:"modifier",text:modifier},cloudRoomCode).catch(()=>{});showToast("Modifier broadcast to everyone.")});
+    els.clearModifierBtn.addEventListener("click",()=>{if(!state.currentModifier)return;state.currentModifier=null;save();renderNightDashboard();els.extraResult.innerHTML=`<strong>⚡ MODIFIER CLEARED</strong><span>No house modifier is active.</span>`;if(cloudReady)window.ArcadeCloud.broadcastLiveEvent({type:"modifierCleared"},cloudRoomCode).catch(()=>{});showToast("Current modifier removed.")});
     els.endNightBtn.addEventListener("click",endNight);els.startNewNightBtn.addEventListener("click",startNewNight);
     els.adminArchiveList.addEventListener("click",async e=>{
       const nightButton=e.target.closest("[data-delete-night]");

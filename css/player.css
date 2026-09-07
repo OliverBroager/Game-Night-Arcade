@@ -225,3 +225,75 @@
   .claim-name-list { grid-template-columns: 1fr; }.claim-emoji-grid{grid-template-columns:repeat(4,1fr)}.soundboard-grid{grid-template-columns:repeat(2,1fr)}
   .spectator-selector { height: 58vh; }.live-animation-wrap{padding:8px}.live-result-logo{width:110px;height:110px}.live-result-emoji{font-size:82px}
 }
+
+/* =========================================================
+   READABILITY + LEADERBOARD MODES
+   ========================================================= */
+.player-view {
+  --p-xs: clamp(10px, .68vw, 14px);
+  --p-sm: clamp(12px, .80vw, 16px);
+  --p-md: clamp(14px, .96vw, 19px);
+  --p-lg: clamp(18px, 1.3vw, 25px);
+  font-size: var(--p-md);
+}
+.player-brand span, .player-room-status, .player-volume-control span, .player-volume-control strong,
+.cabinet-label, .queue-progress, .queue-help, .queue-number, .queue-game-copy small,
+.section-mini-label, .my-drinks > small, .right-card-heading small, .overlay-support-text,
+.game-info-status, .game-info-mobile-hint, .leader-rank { font-size: var(--p-xs) !important; }
+.queue-game-copy strong, .queue-score, .game-meta, .spectator-team-grid .team-player-list li,
+.live-score-card small, .rules-heading > small, .player-rules .rule-group-title,
+.player-rules .rule-list li, .my-identity p, .inline-soundboard-grid button strong,
+.leader-name strong, .leader-name small, .wins-badge, .drink-badge, .player-tab,
+.match-log-row strong, .match-log-row small, .match-log-row em,
+.archive-night summary strong, .archive-night summary small, .all-player-card strong,
+.all-player-card small, .all-player-card em, .game-info-head p, .game-info-score span,
+.game-info-score strong, .game-info-rule-title, .game-info-rule-group li,
+.game-info-rule-group p, .soundboard-grid button strong, .live-winner-card > small,
+.live-winner-card > p, .live-notice, .empty-dashboard { font-size: var(--p-sm) !important; }
+.player-brand strong { font-size: clamp(19px, 1.35vw, 27px) !important; }
+.game-queue-head h2, .rules-heading h2, .player-section-heading h2,
+.mini-leaderboard-head h2 { font-size: var(--p-lg) !important; }
+.live-score-card strong { font-size: var(--p-md) !important; }
+
+/* Dedicated modifier field: always visible, active state lights up. */
+.modifier-field {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr);
+  gap: 9px;
+  align-items: center;
+  margin: 11px 0 0;
+  padding: 9px 11px;
+  border: 2px solid #3a3e49;
+  background: #0b0d12;
+  color: var(--muted);
+}
+.modifier-field span { color: var(--yellow); font-size: var(--p-xs); font-weight: 900; letter-spacing: .12em; }
+.modifier-field strong { font-size: var(--p-sm); line-height: 1.3; }
+.modifier-field.active { border-color: var(--yellow); background: #1b1808; color: #ffe681; }
+
+/* Switchable leaderboard */
+.mini-leaderboard-head { display: grid; gap: 8px; }
+.leaderboard-modes { display: grid; grid-template-columns: repeat(3,1fr); gap: 4px; }
+.leaderboard-mode {
+  min-height: 32px;
+  border: 2px solid #333846;
+  background: #0b0d12;
+  color: var(--muted);
+  font: 900 var(--p-xs) "Courier New", monospace;
+  cursor: pointer;
+}
+.leaderboard-mode:hover { border-color: var(--cyan); color: var(--text); }
+.leaderboard-mode.active { border-color: var(--yellow); background: #211d08; color: var(--yellow); }
+.leaderboard-row { grid-template-columns: 24px 34px minmax(0,1fr) 46px !important; min-height: 42px; padding: 7px !important; }
+.dashboard-player-emoji { width: 32px !important; height: 32px !important; font-size: 19px !important; }
+.wins-badge, .drink-badge { min-height: 30px !important; }
+
+/* Player Coin Drop scales into the live animation stage. */
+.spectator-coin-drop { width: min(960px, 100%); }
+.spectator-coin-drop .coin-drop-board { height: min(520px, 64vh); }
+
+@media (max-width: 680px) {
+  .player-view { --p-xs: 10px; --p-sm: 12px; --p-md: 14px; --p-lg: 19px; }
+  .player-brand strong { font-size: 16px !important; }
+  .leaderboard-modes { grid-template-columns: repeat(3,1fr); }
+}

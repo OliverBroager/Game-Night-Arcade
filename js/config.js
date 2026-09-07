@@ -13,7 +13,7 @@ window.ARCADE_CONFIG = {
     wheelMs: 8307, // Matches the bundled spin.mp3 duration (8.307 seconds)
     caseMs: 6100,
     slotMs: 4600,
-    shuffleMs: 3600
+    coinDropMs: 4600
   },
   sounds: {
     button: "sounds/button.mp3",

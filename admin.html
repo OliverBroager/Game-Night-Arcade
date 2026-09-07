@@ -48,8 +48,8 @@
           <div class="wheel-wrap">
             <div class="wheel-pointer" aria-hidden="true"></div>
             <canvas id="wheelCanvas" width="900" height="900"></canvas>
-            <button id="wheelSpinButton" class="wheel-hub" type="button">
-              <span class="wheel-hub-small">PRESS</span>
+            <button id="wheelSpinButton" class="wheel-hub wheel-spin-button" type="button" aria-label="Spin wheel">
+              <span class="wheel-spin-ring" aria-hidden="true"></span>
               <strong>SPIN</strong>
             </button>
           </div>
@@ -80,10 +80,15 @@
           </div>
         </div>
 
-        <div id="shuffleMode" class="mode-layer" aria-label="Arcade shuffle">
-          <div class="shuffle-machine">
-            <div id="shuffleGrid" class="shuffle-grid"></div>
-            <button id="shuffleSpinButton" class="primary-btn huge" type="button">START SHUFFLE</button>
+        <div id="coinDropMode" class="mode-layer" aria-label="Coin drop">
+          <div class="coin-drop-machine">
+            <div class="coin-drop-sign"><span>INSERT COIN</span><strong>GAME DROP</strong></div>
+            <div id="coinDropBoard" class="coin-drop-board">
+              <div id="coinDropPegs" class="coin-drop-pegs" aria-hidden="true"></div>
+              <div id="coinDropCoin" class="coin-drop-coin" aria-hidden="true">★</div>
+              <div id="coinDropSlots" class="coin-drop-slots"></div>
+            </div>
+            <button id="coinDropSpinButton" class="primary-btn huge coin-drop-button" type="button">DROP COIN</button>
           </div>
         </div>
       </div>
@@ -261,6 +266,10 @@
         <button id="randomPlayerBtn" class="secondary-btn" type="button">🎯 PICK A PLAYER</button>
         <button id="coinFlipBtn" class="secondary-btn" type="button">🪙 COIN FLIP</button>
         <button id="modifierBtn" class="secondary-btn" type="button">⚡ RANDOM MODIFIER</button>
+      </div>
+      <div class="modifier-admin-box">
+        <div><span>CURRENT MODIFIER</span><strong id="currentModifierAdmin">NONE ACTIVE</strong></div>
+        <button id="clearModifierBtn" class="secondary-btn modifier-clear-btn" type="button">CLEAR MODIFIER</button>
       </div>
       <div id="extraResult" class="extra-result">Use these for map picks, first player, tie-breaks or a little extra chaos.</div>
     </section>
@@ -448,11 +457,11 @@
           <span class="mode-tag">CHAOS</span>
         </button>
 
-        <button class="mode-card" data-mode="shuffle" type="button">
-          <span class="mode-icon">⚡</span>
-          <strong>Arcade Shuffle</strong>
-          <small>Rapid-fire flashing game tiles that slow to one winner.</small>
-          <span class="mode-tag">FAST</span>
+        <button class="mode-card" data-mode="coinDrop" type="button">
+          <span class="mode-icon">🪙</span>
+          <strong>Coin Drop</strong>
+          <small>Drop a coin through the peg board and land on tonight's game.</small>
+          <span class="mode-tag">PLINKO</span>
         </button>
       </div>
 
