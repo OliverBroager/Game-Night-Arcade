@@ -265,9 +265,154 @@
   function renderMyCard(){const member=me();if(!member)return;els.myEmoji.textContent=member.emoji||"🎮";els.myName.textContent=member.name;els.myDrinkCount.textContent=Math.max(0,Number(member.drinks)||0);const team=publicState().teamResult?.teams?.find(team=>team.players?.includes(member.name));els.myTeam.textContent=team?team.name:"No team assigned yet";const ended=roomData?.meta?.status==="ended"||publicState().nightEnded;els.myDrinkMinus.disabled=ended;els.myDrinkPlus.disabled=ended;}
 
 
+  /* This CSS is injected into the separate PiP/pop-out document, not the player page.
+     Use the overlay document's OWN width (cqw) so resizing the floating box scales
+     typography, padding and columns together. Height stays scrollable if needed. */
   const overlayCss=`
-    :root{color-scheme:dark;--red:#ff4f63;--yellow:#ffd23f;--green:#48ef88;--cyan:#55e9ff;--text:#fff;--muted:#c6cad4}
-    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:transparent!important;color:var(--text);font-family:ui-monospace,"Cascadia Mono","Segoe UI",monospace}body{padding:7px;overflow:auto;background:rgba(0,0,0,.16)!important}.hud{display:grid;gap:6px}.hud-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 7px;border-left:3px solid var(--cyan);background:rgba(0,0,0,.34)}.hud-top strong{font-size:12px;letter-spacing:.04em}.hud-top small{display:block;color:var(--muted);font-size:7px;margin-top:1px}.hud-close{width:27px;height:27px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:white;font-size:16px;cursor:pointer}.hud-teams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.hud-team{padding:6px;border:1px solid rgba(255,255,255,.24);background:rgba(0,0,0,.28)}.hud-team.mine{border-color:rgba(85,233,255,.75)}.hud-team h3{margin:0 0 4px;color:var(--cyan);font-size:8px;letter-spacing:.08em}.hud-player{display:inline-block;margin:2px 3px 2px 0;padding:3px 5px;background:rgba(0,0,0,.34);font-size:8px}.hud-player.me{outline:1px solid var(--cyan)}.hud-rules{display:grid;gap:4px}.hud-rule{display:grid;grid-template-columns:56px minmax(0,1fr);gap:5px;align-items:start;padding:5px 6px;background:rgba(0,0,0,.31);border-left:3px solid currentColor}.hud-rule.red{color:var(--red)}.hud-rule.yellow{color:var(--yellow)}.hud-rule.green{color:var(--green)}.hud-rule h3{margin:2px 0 0;font-size:8px;letter-spacing:.08em}.hud-rule ul{margin:0;padding:0 0 0 15px;color:white}.hud-rule li{margin:0 0 3px;font-size:8px;line-height:1.25}.hud-empty{padding:12px;background:rgba(0,0,0,.28);color:var(--muted);font-size:9px;text-align:center}@media(max-width:330px){body{padding:4px}.hud-teams{grid-template-columns:1fr}.hud-rule{grid-template-columns:48px minmax(0,1fr)}}
+    :root {
+      color-scheme: dark;
+      --red: #ff7384;
+      --yellow: #ffe069;
+      --green: #75ffae;
+      --cyan: #7cefff;
+      --text: #f9fbff;
+      --muted: #d2d7e4;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: transparent !important;
+      color: var(--text);
+      font-family: ui-monospace, "Cascadia Mono", "Segoe UI", monospace;
+    }
+    body { padding: clamp(5px,1.8vw,12px); overflow: auto; }
+    #overlayRoot { width: 100%; container-type: inline-size; }
+    .hud {
+      --hud-body: clamp(13px, 3.65cqw, 20px);
+      --hud-small: clamp(12px, 3.1cqw, 17px);
+      --hud-title: clamp(15px, 4.2cqw, 24px);
+      --hud-gap: clamp(5px, 1.5cqw, 10px);
+      display: grid;
+      gap: var(--hud-gap);
+      min-width: 0;
+      font-size: var(--hud-body);
+      line-height: 1.4;
+      text-shadow: 0 1px 2px rgba(0,0,0,.9);
+    }
+    .hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      padding: clamp(7px,2cqw,12px);
+      border-left: 4px solid var(--cyan);
+      background: rgba(0,0,0,.48);
+    }
+    .hud-top > div { flex: 1; min-width: 0; }
+    .hud-top strong {
+      display: block;
+      font-size: var(--hud-title);
+      line-height: 1.1;
+      letter-spacing: .02em;
+      overflow-wrap: anywhere;
+    }
+    .hud-top small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: var(--hud-small);
+      letter-spacing: .02em;
+    }
+    .hud-close {
+      flex: none;
+      width: 33px;
+      height: 33px;
+      border: 1px solid rgba(255,255,255,.5);
+      border-radius: 3px;
+      background: rgba(0,0,0,.52);
+      color: var(--text);
+      font-size: 22px;
+      cursor: pointer;
+    }
+    .hud-close:hover { border-color: var(--cyan); }
+    .hud-teams {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: var(--hud-gap);
+    }
+    .hud-team {
+      min-width: 0;
+      padding: clamp(7px,1.8cqw,12px);
+      border: 1px solid rgba(255,255,255,.34);
+      background: rgba(0,0,0,.40);
+    }
+    .hud-team.mine { border-color: var(--cyan); }
+    .hud-team h3 {
+      margin: 0 0 7px;
+      color: var(--cyan);
+      font-size: var(--hud-body);
+      line-height: 1.15;
+      letter-spacing: .03em;
+      overflow-wrap: anywhere;
+    }
+    .hud-player {
+      display: inline-block;
+      max-width: 100%;
+      margin: 2px 4px 3px 0;
+      padding: 4px 6px;
+      background: rgba(0,0,0,.4);
+      font-size: var(--hud-small);
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    .hud-player.me { outline: 1px solid var(--cyan); }
+    .hud-rules { display: grid; gap: var(--hud-gap); }
+    .hud-rule {
+      display: grid;
+      grid-template-columns: clamp(66px,18cqw,110px) minmax(0,1fr);
+      gap: clamp(5px,1.4cqw,11px);
+      padding: clamp(7px,1.8cqw,12px);
+      border-left: 4px solid currentColor;
+      background: rgba(0,0,0,.43);
+    }
+    .hud-rule.red { color: var(--red); }
+    .hud-rule.yellow { color: var(--yellow); }
+    .hud-rule.green { color: var(--green); }
+    .hud-rule h3 {
+      margin: 2px 0 0;
+      font-size: var(--hud-small);
+      font-weight: 900;
+      line-height: 1.25;
+      letter-spacing: .02em;
+      overflow-wrap: anywhere;
+    }
+    .hud-rule ul { min-width: 0; margin: 0; padding: 0 0 0 1.1em; color: var(--text); }
+    .hud-rule li {
+      margin: 0 0 5px;
+      font-size: var(--hud-body);
+      line-height: 1.43;
+      overflow-wrap: anywhere;
+    }
+    .hud-rule li:last-child { margin-bottom: 0; }
+    .hud-empty {
+      padding: 12px;
+      background: rgba(0,0,0,.45);
+      color: var(--muted);
+      font-size: clamp(12px,3.2cqw,18px);
+      text-align: center;
+    }
+    /* Small floating windows need a single readable column, not tiny text. */
+    @container (max-width: 340px) {
+      .hud-teams { grid-template-columns: 1fr; }
+      .hud-rule { grid-template-columns: 1fr; gap: 4px; }
+      .hud-rule h3 { font-size: var(--hud-body); }
+    }
+    @media (max-height: 390px) {
+      .hud-top small { display: none; }
+      .hud-player { padding-block: 2px; }
+      .hud-rule li { margin-bottom: 2px; }
+    }
   `;
 
   function overlayIsOpen(){return Boolean(overlayWindow&&!overlayWindow.closed&&overlayWindow.document);}

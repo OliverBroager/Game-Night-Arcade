@@ -1411,3 +1411,92 @@ body[data-mode="coinDrop"] .winner-wrap { --winner-a: var(--yellow); --winner-b:
 .player-count-card > label, .number-stepper input, .score-entry-row input,
 .team-count-field select, .score-options select, .search-input { font-size: var(--ui-sm) !important; }
 .mode-card .mode-icon { font-size: clamp(30px,2.5vw,48px) !important; }
+
+
+/* ================================================================
+   READABILITY REFINEMENT — ADMIN CABINET
+   Consistent minimum legibility without altering the cabinet layout.
+   Width-aware sizes scale smoothly from phones to wide monitors.
+   ================================================================ */
+:root {
+  --muted: #c4cad8;
+  --ui-xs: clamp(12px, calc(10px + .22vw), 15px);
+  --ui-sm: clamp(14px, calc(11px + .35vw), 18px);
+  --ui-md: clamp(15px, calc(12px + .35vw), 20px);
+  --ui-lg: clamp(20px, calc(16px + .54vw), 28px);
+}
+body { font-size: var(--ui-md); line-height: 1.45; }
+.brand-kicker, .eyebrow,
+.status-pill, .mode-tag,
+.game-list-item small, .toggle-row small, .mode-card small,
+.team-number, .team-card-heading small,
+.player-number, .team-count-field > span, .score-options label > span,
+.score-entry-rank, .score-entry-name small, .room-link-field span,
+.room-roster-row small, .archive-night summary small,
+.archive-match small, .night-summary span, .night-section-title > small,
+.leader-rank, .leader-name small, .match-log-row small, .match-log-row em,
+.room-code-card small, .room-code-card span, .game-list-item label,
+.scorekeeper-header p, .team-randomizer-header p,
+.player-count-card > label, .overlay-support-text {
+  font-size: var(--ui-xs) !important;
+  line-height: 1.4 !important;
+}
+/* Ordinary descriptions, controls, player names and results should never be microtext. */
+.chip-btn, .primary-btn, .secondary-btn, .danger-btn,
+.status-pill, .segment, .mode-card, .game-list-item,
+.toggle-row, .team-card, .scorekeeper, .team-randomizer,
+.leaderboard-row, .drink-player-row, .room-roster-row,
+.match-log-row, .archive-night, .archive-match, .extra-result,
+.footer-bar, .night-summary, .drawer-tools,
+.player-name-row input, .player-setup-heading p,
+.team-player-list li, .team-card-heading h4,
+.score-entry-name strong, .score-entry-row input,
+.leader-name strong, .wins-badge, .dashboard-player-name,
+.match-log-row strong, .room-roster-row strong,
+.archive-match strong, .room-link-field input,
+.team-count-field select, .score-options select,
+.search-input, .rule-group-title,
+.game-list-item strong, .team-summary {
+  font-size: var(--ui-sm) !important;
+  line-height: 1.45 !important;
+}
+.rule-list li { font-size: var(--ui-md) !important; line-height: 1.55 !important; }
+.chosen-game-card h2, .team-randomizer-header h3,
+.scorekeeper-header h3, .night-section-title h3,
+.rules-heading h2, .drawer-header h2, .mode-card strong {
+  font-size: var(--ui-lg) !important;
+  line-height: 1.2 !important;
+}
+/* Improve contrast without making already-completed games appear active. */
+.rule-list li, .score-entry-name strong, .leader-name strong,
+.team-player-list li, .game-list-item strong { color: #f6f8ff; }
+.score-entry-name small, .leader-name small, .match-log-row em,
+.toggle-row small, .game-list-item small { color: #c4cad8 !important; }
+/* Extra height accommodates bigger text without changing the grid or columns. */
+.game-list-item, .score-entry-row, .drink-player-row,
+.leaderboard-row, .match-log-row { min-height: 50px; }
+.team-player-list li { min-height: 31px; overflow-wrap: anywhere; }
+.score-entry-row input, .team-count-field select, .score-options select,
+.player-name-row input { min-height: 42px; }
+.score-entry-name strong, .leader-name strong, .team-card-heading h4 {
+  overflow-wrap: anywhere;
+}
+/* Layout-safe sizes for crowded drawers on mobile. */
+@media (max-width: 720px) {
+  :root {
+    --ui-xs: 12px;
+    --ui-sm: 14px;
+    --ui-md: 15px;
+    --ui-lg: 21px;
+  }
+  .topbar .chip-btn { font-size: 14px !important; }
+  .night-summary strong { font-size: 20px !important; }
+}
+
+/* Read long rules/descriptions in a clean sans font; keep arcade labels/headings. */
+.rule-list li, .team-player-list li, .toggle-row small, .scorekeeper-header p,
+.team-randomizer-header p, .score-entry-name small, .game-list-item small,
+.match-log-row em, .room-roster-row small {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  letter-spacing: .003em;
+}

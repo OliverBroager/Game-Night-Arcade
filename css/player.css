@@ -297,3 +297,120 @@
   .player-brand strong { font-size: 16px !important; }
   .leaderboard-modes { grid-template-columns: repeat(3,1fr); }
 }
+
+
+/* ================================================================
+   READABILITY REFINEMENT — PLAYER TERMINAL
+   Keep the three-column cabinet. Remove microscopic 6–9px text.
+   ================================================================ */
+.player-view {
+  --p-xs: clamp(12px, calc(10px + .20vw), 15px);
+  --p-sm: clamp(14px, calc(11px + .32vw), 18px);
+  --p-md: clamp(15px, calc(12px + .35vw), 20px);
+  --p-lg: clamp(21px, calc(17px + .50vw), 29px);
+  font-size: var(--p-md);
+  line-height: 1.45;
+}
+.player-view .eyebrow, .player-view .cabinet-label,
+.player-brand span, .queue-progress, .queue-help, .queue-number,
+.queue-game-copy small, .section-mini-label, .my-drinks > small,
+.right-card-heading small, .overlay-support-text,
+.leader-rank, .leader-name small, .match-log-row small,
+.match-log-row em, .archive-night summary small,
+.archive-match small, .all-player-card small, .all-player-card em,
+.game-info-status, .game-info-score span,
+.game-info-rule-title, .game-info-rule-group p,
+.game-info-mobile-hint, .player-volume-control span,
+.player-volume-control strong, .soundboard-modal .cooldown-text {
+  font-size: var(--p-xs) !important;
+  line-height: 1.35 !important;
+}
+.player-room-status, .queue-score, .queue-game-copy strong,
+.game-meta, .spectator-team-grid .team-player-list li,
+.live-score-card small, .rules-heading > small,
+.player-rules .rule-group-title, .my-identity p,
+.inline-soundboard-grid button strong,
+.leader-name strong, .wins-badge, .drink-badge,
+.player-tab, .match-log-row strong,
+.archive-night summary strong, .archive-match strong,
+.all-player-card strong, .game-info-head p,
+.game-info-score strong, .game-info-rule-group li,
+.soundboard-grid button strong, .live-winner-card > small,
+.live-winner-card > p, .live-notice, .empty-dashboard,
+.modifier-field strong, .full-soundboard-btn,
+.leaderboard-mode, .join-modal > p, .soundboard-modal > p,
+.claim-name strong, .claim-name small, .join-field span {
+  font-size: var(--p-sm) !important;
+  line-height: 1.4 !important;
+}
+.player-rules .rule-list li {
+  font-size: var(--p-md) !important;
+  line-height: 1.5 !important;
+  overflow-wrap: anywhere;
+}
+.player-rules .rule-list { padding-left: 25px; }
+.player-rules .rule-group-title { padding: 9px 11px; }
+.game-queue-head h2, .rules-heading h2, .player-section-heading h2,
+.mini-leaderboard-head h2 { font-size: var(--p-lg) !important; }
+.live-score-card strong { font-size: var(--p-md) !important; }
+.player-brand strong { font-size: clamp(19px,calc(17px + .4vw),27px) !important; }
+.player-tab, .leaderboard-mode, .full-soundboard-btn { min-height: 42px; }
+.queue-logo-wrap { width: 45px; height: 45px; }
+.queue-logo-wrap img { max-width: 39px; max-height: 39px; }
+.game-queue-item {
+  grid-template-columns: 21px 45px minmax(0,1fr) auto;
+  min-height: 62px;
+  gap: 7px;
+  padding: 6px;
+}
+/* Still clearly completed, but readable on hover or quick glance. */
+.game-queue-item.played { opacity: .72; filter: grayscale(.9); }
+.game-queue-item.played:hover, .game-queue-item.played.info-active,
+.game-queue-item.played:focus-visible { opacity: 1; filter: grayscale(.5); }
+.queue-game-copy strong, .leader-name strong { white-space: normal; overflow-wrap: anywhere; }
+.leaderboard-row { grid-template-columns: 23px 35px minmax(0,1fr) 49px !important; }
+.leaderboard-row .leader-name small { overflow-wrap: anywhere; }
+.my-player-card { padding-inline: 14px; }
+.inline-soundboard-grid button { min-height: 54px; grid-template-columns: 28px minmax(0,1fr); }
+.inline-soundboard-grid button strong { white-space: normal; overflow-wrap: anywhere; }
+.inline-soundboard-grid { max-height: min(300px,37vh); }
+.my-drink-controls button { min-height: 46px; }
+.modifier-field span { font-size: var(--p-xs) !important; }
+.game-info-popover { width: min(470px,calc(100vw - 24px)); }
+.game-info-rule-group li { line-height: 1.48 !important; }
+/* Let the main game/rules center panel keep more room as type grows. */
+@media (min-width: 1251px) {
+  .player-cabinet-grid {
+    grid-template-columns: clamp(280px,21vw,350px) minmax(0,1fr) clamp(300px,22vw,365px);
+  }
+}
+@media (min-width: 981px) and (max-width: 1250px) {
+  .player-cabinet-grid { grid-template-columns: 270px minmax(0,1fr) 290px; }
+  .player-rules { grid-template-columns: 1fr; }
+  .spectator-team-grid { grid-template-columns: 1fr; }
+}
+/* At ordinary laptop widths, a vertical rules layout prevents squeezed text. */
+@media (min-width: 1251px) and (max-width: 1530px) {
+  .player-rules { grid-template-columns: 1fr; }
+}
+@media (max-width: 980px) {
+  .game-queue-list { max-height: 580px; overflow-y: auto; }
+  .player-right-column { align-items: start; }
+}
+@media (max-width: 680px) {
+  .player-view { --p-xs: 12px; --p-sm: 14px; --p-md: 15px; --p-lg: 22px; }
+  .player-brand strong { font-size: 18px !important; }
+  .player-room-status { font-size: 13px !important; }
+  .player-rules { grid-template-columns: 1fr; }
+  .player-topbar .chip-btn { font-size: 14px !important; }
+  .game-queue-list { max-height: 600px; }
+  .soundboard-grid button { min-height: 100px; }
+  .claim-name-list { grid-template-columns: 1fr; }
+}
+
+/* Functional text is easier to parse in a neutral font than cabinet labels. */
+.player-rules .rule-list li, .game-meta, .queue-help, .my-identity p,
+.leader-name small, .match-log-row em, .game-info-rule-group li {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  letter-spacing: .002em;
+}
