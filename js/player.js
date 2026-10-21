@@ -269,152 +269,49 @@
      Use the overlay document's OWN width (cqw) so resizing the floating box scales
      typography, padding and columns together. Height stays scrollable if needed. */
   const overlayCss=`
-    :root {
-      color-scheme: dark;
-      --red: #ff7384;
-      --yellow: #ffe069;
-      --green: #75ffae;
-      --cyan: #7cefff;
-      --text: #f9fbff;
-      --muted: #d2d7e4;
-    }
+    :root { color-scheme: dark; --red:#ffadb3; --yellow:#f6d991; --green:#a6e9c1; --cyan:#b0e4eb; --text:#f6f8fb; --muted:#c2cedd; }
     * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      min-height: 100%;
-      background: transparent !important;
-      color: var(--text);
-      font-family: ui-monospace, "Cascadia Mono", "Segoe UI", monospace;
-    }
-    body { padding: clamp(5px,1.8vw,12px); overflow: auto; }
-    #overlayRoot { width: 100%; container-type: inline-size; }
+    html, body { margin:0; min-height:100%; background:transparent !important; color:var(--text); font-family: system-ui,-apple-system,'Segoe UI',Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+    body { padding:clamp(4px,1.5vw,10px); overflow:auto; }
+    #overlayRoot { width:100%; container-type:inline-size; }
     .hud {
-      --hud-body: clamp(13px, 3.65cqw, 20px);
-      --hud-small: clamp(12px, 3.1cqw, 17px);
-      --hud-title: clamp(15px, 4.2cqw, 24px);
-      --hud-gap: clamp(5px, 1.5cqw, 10px);
-      display: grid;
-      gap: var(--hud-gap);
-      min-width: 0;
-      font-size: var(--hud-body);
-      line-height: 1.4;
-      text-shadow: 0 1px 2px rgba(0,0,0,.9);
+      --hud-body:clamp(13px,3.45cqw,19px);
+      --hud-small:clamp(11px,2.9cqw,15px);
+      --hud-title:clamp(17px,4.4cqw,25px);
+      --hud-pad:clamp(9px,2.1cqw,15px);
+      --hud-gap:clamp(6px,1.7cqw,11px);
+      display:grid; gap:var(--hud-gap); min-width:0; font-size:var(--hud-body); line-height:1.43;
+      text-shadow:0 1px 2px rgba(0,0,0,.9);
     }
-    .hud-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 8px;
-      padding: clamp(7px,2cqw,12px);
-      border-left: 4px solid var(--cyan);
-      background: rgba(0,0,0,.48);
+    .hud-top { display:flex; align-items:flex-start; gap:8px; justify-content:space-between; padding:var(--hud-pad); border:1px solid rgba(179,199,212,.32); border-left:3px solid var(--cyan); border-radius:8px; background:rgba(9,14,20,.48); }
+    .hud-top > div { min-width:0; flex:1; }
+    .hud-top strong { display:block; font-size:var(--hud-title); font-weight:750; letter-spacing:-.03em; line-height:1.15; overflow-wrap:anywhere; }
+    .hud-top small { display:block; margin-top:5px; color:var(--muted); font-size:var(--hud-small); letter-spacing:.02em; }
+    .hud-close { display:grid; place-items:center; flex:none; width:31px; height:31px; border:1px solid rgba(201,218,228,.42); border-radius:7px; background:rgba(15,22,30,.72); color:#f5f8fa; font:500 22px/1 system-ui,sans-serif; cursor:pointer; }
+    .hud-close:hover,.hud-close:focus-visible { border-color:var(--cyan); outline-color:var(--cyan); }
+    .hud-teams { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--hud-gap); }
+    .hud-team { min-width:0; padding:var(--hud-pad); border:1px solid rgba(178,203,220,.24); border-radius:8px; background:rgba(9,14,20,.38); }
+    .hud-team.mine { border-color:rgba(127,216,227,.7); background:rgba(17,43,49,.48); }
+    .hud-team h3 { margin:0 0 8px; font-size:var(--hud-body); line-height:1.2; font-weight:730; letter-spacing:-.015em; overflow-wrap:anywhere; color:#eef6f8; }
+    .hud-player { display:inline-block; max-width:100%; margin:1px 5px 5px 0; padding:3px 6px; border:1px solid rgba(203,220,226,.13); border-radius:5px; background:rgba(0,0,0,.29); font-size:var(--hud-small); line-height:1.4; overflow-wrap:anywhere; }
+    .hud-player.me { border-color:rgba(132,221,229,.75); }
+    .hud-rules { display:grid; gap:var(--hud-gap); }
+    .hud-rule { display:grid; grid-template-columns:clamp(60px,19cqw,108px) minmax(0,1fr); gap:var(--hud-gap); align-items:start; padding:var(--hud-pad); border:1px solid rgba(178,203,220,.22); border-left:3px solid currentColor; border-radius:8px; background:rgba(9,14,20,.44); }
+    .hud-rule.red { color:var(--red); }
+    .hud-rule.yellow { color:var(--yellow); }
+    .hud-rule.green { color:var(--green); }
+    .hud-rule h3 { margin:2px 0 0; font-size:var(--hud-small); font-weight:760; line-height:1.25; letter-spacing:.035em; }
+    .hud-rule ul { min-width:0; margin:0; padding:0 0 0 1.05em; color:var(--text); }
+    .hud-rule li { margin:0 0 6px; font-size:var(--hud-body); font-weight:480; line-height:1.45; overflow-wrap:anywhere; }
+    .hud-rule li:last-child { margin:0; }
+    .hud-empty { padding:14px; border-radius:8px; background:rgba(9,14,20,.44); color:var(--muted); font-size:var(--hud-body); text-align:center; }
+    @container (max-width:370px) {
+      .hud-teams { grid-template-columns:1fr; }
+      .hud-rule { grid-template-columns:1fr; gap:6px; }
+      .hud-rule h3 { font-size:var(--hud-body); }
     }
-    .hud-top > div { flex: 1; min-width: 0; }
-    .hud-top strong {
-      display: block;
-      font-size: var(--hud-title);
-      line-height: 1.1;
-      letter-spacing: .02em;
-      overflow-wrap: anywhere;
-    }
-    .hud-top small {
-      display: block;
-      margin-top: 5px;
-      color: var(--muted);
-      font-size: var(--hud-small);
-      letter-spacing: .02em;
-    }
-    .hud-close {
-      flex: none;
-      width: 33px;
-      height: 33px;
-      border: 1px solid rgba(255,255,255,.5);
-      border-radius: 3px;
-      background: rgba(0,0,0,.52);
-      color: var(--text);
-      font-size: 22px;
-      cursor: pointer;
-    }
-    .hud-close:hover { border-color: var(--cyan); }
-    .hud-teams {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: var(--hud-gap);
-    }
-    .hud-team {
-      min-width: 0;
-      padding: clamp(7px,1.8cqw,12px);
-      border: 1px solid rgba(255,255,255,.34);
-      background: rgba(0,0,0,.40);
-    }
-    .hud-team.mine { border-color: var(--cyan); }
-    .hud-team h3 {
-      margin: 0 0 7px;
-      color: var(--cyan);
-      font-size: var(--hud-body);
-      line-height: 1.15;
-      letter-spacing: .03em;
-      overflow-wrap: anywhere;
-    }
-    .hud-player {
-      display: inline-block;
-      max-width: 100%;
-      margin: 2px 4px 3px 0;
-      padding: 4px 6px;
-      background: rgba(0,0,0,.4);
-      font-size: var(--hud-small);
-      line-height: 1.35;
-      overflow-wrap: anywhere;
-    }
-    .hud-player.me { outline: 1px solid var(--cyan); }
-    .hud-rules { display: grid; gap: var(--hud-gap); }
-    .hud-rule {
-      display: grid;
-      grid-template-columns: clamp(66px,18cqw,110px) minmax(0,1fr);
-      gap: clamp(5px,1.4cqw,11px);
-      padding: clamp(7px,1.8cqw,12px);
-      border-left: 4px solid currentColor;
-      background: rgba(0,0,0,.43);
-    }
-    .hud-rule.red { color: var(--red); }
-    .hud-rule.yellow { color: var(--yellow); }
-    .hud-rule.green { color: var(--green); }
-    .hud-rule h3 {
-      margin: 2px 0 0;
-      font-size: var(--hud-small);
-      font-weight: 900;
-      line-height: 1.25;
-      letter-spacing: .02em;
-      overflow-wrap: anywhere;
-    }
-    .hud-rule ul { min-width: 0; margin: 0; padding: 0 0 0 1.1em; color: var(--text); }
-    .hud-rule li {
-      margin: 0 0 5px;
-      font-size: var(--hud-body);
-      line-height: 1.43;
-      overflow-wrap: anywhere;
-    }
-    .hud-rule li:last-child { margin-bottom: 0; }
-    .hud-empty {
-      padding: 12px;
-      background: rgba(0,0,0,.45);
-      color: var(--muted);
-      font-size: clamp(12px,3.2cqw,18px);
-      text-align: center;
-    }
-    /* Small floating windows need a single readable column, not tiny text. */
-    @container (max-width: 340px) {
-      .hud-teams { grid-template-columns: 1fr; }
-      .hud-rule { grid-template-columns: 1fr; gap: 4px; }
-      .hud-rule h3 { font-size: var(--hud-body); }
-    }
-    @media (max-height: 390px) {
-      .hud-top small { display: none; }
-      .hud-player { padding-block: 2px; }
-      .hud-rule li { margin-bottom: 2px; }
-    }
+    @media (max-height:370px) { .hud-top small { display:none; } .hud-rule li { margin-bottom:3px; } }
   `;
-
   function overlayIsOpen(){return Boolean(overlayWindow&&!overlayWindow.closed&&overlayWindow.document);}
 
   function renderOverlay(){
