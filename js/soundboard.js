@@ -57,9 +57,9 @@ window.ARCADE_SOUNDBOARD = [
 
   { id: "among-us-role", name: "Among Us Role Reveal", emoji: "👽", file: "sounds/soundboard/among-us.mp3" },
 
-  { id: "let-it-ride", name: "Let It Ride!", emoji: "🎰", file: "sounds/soundboard/lets-go-gambling.mp3" },
+  { id: "let-it-ride", name: "Let It Ride!", emoji: "🎰", file: "sounds/soundboard/let-it-ride.mp3" },
 
-  { id: "lets-go-gambling", name: "Let's Go Gambling!", emoji: "🎰", file: "sounds/soundboard/let-it-ride.mp3" },
+  { id: "lets-go-gambling", name: "Let's Go Gambling!", emoji: "🎰", file: "sounds/soundboard/lets-go-gambling.mp3" },
 
   { id: "phone-ringing", name: "Your Phone Is Ringing", emoji: "📱", file: "sounds/soundboard/your-phone-linging.mp3" }
 
