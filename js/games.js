@@ -44,11 +44,10 @@ window.GAMES = [
       ],
       yellow: [
         "Lose a shirt matchup → DRINK 1",
-        "Your shirt gets 0 votes → DRINK 1",
-        "Miss the reveal because you're laughing → DRINK 1"
+        "Your shirt gets 0 votes → DRINK 1"
       ],
       green: [
-        "Win a shirt matchup → GIVE 3",
+        "Win a shirt matchup → GIVE 2",
         "Win the final gauntlet → GIVE 5"
       ]
     }
@@ -227,7 +226,7 @@ window.GAMES = [
       ],
       green: [
         "Hole-in-one → GIVE 3",
-        "Win a hole by 3+ strokes → GIVE 2"
+        "Overall winner → GIVE 5"
       ]
     }
   },
@@ -495,7 +494,7 @@ window.GAMES = [
         "Lose the round → losing team DRINK 1"
       ],
       green: [
-        "Taunt and survive 10 sec → GIVE 1",
+        "Taunt and survive 20 sec → GIVE 1",
         "Survive full round as Prop → GIVE 2"
       ]
     }
@@ -514,7 +513,7 @@ window.GAMES = [
       ],
       yellow: [
         "First Hider found → DRINK 2",
-        "Found while still adjusting disguise → DRINK 1"
+        "Found after first hider is found → DRINK 1"
       ],
       green: [
         "Seeker finds a Hider → GIVE 1",
@@ -634,15 +633,15 @@ window.GAMES = [
     },
     rules: {
       red: [
-        "Die while carrying the Urn → SHOT"
+        "First to get killed → SHOT"
       ],
       yellow: [
         "Die → DRINK 1",
-        "Lose Guardian/Walker or enemy Urn delivery → team DRINK 1",
-        "Lose match → losing team DRINK 3"
+        "Lose Guardian/Walker → team DRINK 1",
+        "Lose match → losing team DRINK 2"
       ],
       green: [
-        "Deliver the Urn → GIVE 3",
+        "Win match → team GIVE 2",
         "Win team fight with 0 deaths → team GIVE 3"
       ]
     }
